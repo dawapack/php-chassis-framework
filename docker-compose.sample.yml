@@ -1,0 +1,25 @@
+version: '3.2'
+services:
+  dawapack_chassis_framework:
+    image: dawapack:0.1-chassis-framework
+    container_name: dawapack_chassis_framework
+    build:
+      dockerfile: Dockerfile
+      context: ./var/docker
+    stop_grace_period: 5s
+    stdin_open: true
+    tty: true
+    environment:
+      ORIGIN: "eu"
+      REGION: "eu-bucharest-1"
+    volumes:
+      - type: bind
+        source: .
+        target: /var/package
+  rabbitmq:
+    image: rabbitmq:3.9.0-management-alpine
+    container_name: dawapack_chassis_rabbitmq
+    restart: on-failure
+    ports:
+      - "5672:5672"
+      - "15672:15672"

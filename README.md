@@ -1,2 +1,2 @@
-# chassis-framework
-A lightweight framework used in all dawapack projects.
+# DaWaPack Chassis Framework
+A lightweight framework used in all DaWaPack projects.
