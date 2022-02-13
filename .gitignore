@@ -1,6 +1,7 @@
 # folders
 .idea
 vendor
+tmp
 
 # files
 .env

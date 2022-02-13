@@ -33,9 +33,9 @@
   },
   "autoload": {
     "files": [
-      "src/Helpers/collections.php",
-      "src/Helpers/general.php",
-      "src/Helpers/broker.php"
+      "./src/Helpers/collections.php",
+      "./src/Helpers/general.php",
+      "./src/Helpers/broker.php"
     ],
     "psr-4": {
       "Chassis\\": "src/"
@@ -46,9 +46,9 @@
       "Chassis\\Tests\\": "tests/"
     },
     "files": [
-      "src/Helpers/collections.php",
-      "src/Helpers/general.php",
-      "src/Helpers/broker.php"
+      "./src/Helpers/collections.php",
+      "./src/Helpers/general.php",
+      "./src/Helpers/broker.php"
     ]
   },
   "config": {
