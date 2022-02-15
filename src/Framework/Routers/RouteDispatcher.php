@@ -4,24 +4,13 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
-use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Services\ServiceInterface;
 
 class RouteDispatcher
 {
-    private Application $application;
-    private string $className;
     private string $method;
     private bool $invokable = false;
-
-    /**
-     * @param Application $application
-     */
-    public function __construct(Application $application)
-    {
-        $this->application = $application;
-    }
 
     /**
      * @param array|string $route
@@ -55,12 +44,12 @@ class RouteDispatcher
     {
         if (is_string($route)) {
             $this->invokable = true;
-            $this->className = $route;
+            $className = $route;
         } else {
-            list($this->className, $this->method) = $route;
+            list($className, $this->method) = $route;
         }
 
-        return new $this->className($messageBag, $this->application);
+        return new $className($messageBag);
     }
 
     /**

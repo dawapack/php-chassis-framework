@@ -24,6 +24,10 @@ class Router implements RouterInterface
         $this->routes = $routes;
     }
 
+    public function setRouteDispatcher(RouteDispatcher $dispatcher) {
+        $this->dispatcher = $dispatcher;
+    }
+
     /**
      * @inheritDoc
      */

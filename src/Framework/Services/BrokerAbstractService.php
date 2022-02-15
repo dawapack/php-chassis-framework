@@ -7,6 +7,8 @@ namespace Chassis\Framework\Services;
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 
+use function Chassis\Helpers\app;
+
 class BrokerAbstractService implements ServiceInterface
 {
     protected const LOGGER_COMPONENT_PREFIX = "broker_service_";
@@ -16,13 +18,11 @@ class BrokerAbstractService implements ServiceInterface
 
     /**
      * @param MessageBagInterface $messageBag
-     * @param Application $app
      */
     public function __construct(
-        MessageBagInterface $messageBag,
-        Application $app
+        MessageBagInterface $messageBag
     ) {
         $this->messageBag = $messageBag;
-        $this->app = $app;
+        $this->app = app();
     }
 }
