@@ -23,9 +23,6 @@ abstract class RoutingServiceProvider extends AbstractServiceProvider
     {
         $this->getContainer()
             ->add(RouterInterface::class, Router::class)
-            ->addArguments([
-                new RouteDispatcher(),
-                $this->routes
-            ])->setShared(false);
+            ->addArguments([new RouteDispatcher(), $this->routes]);
     }
 }
