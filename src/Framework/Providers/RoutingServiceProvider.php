@@ -14,22 +14,8 @@ abstract class RoutingServiceProvider extends AbstractServiceProvider implements
 {
     protected array $routes = [];
 
-    public function provides(string $id): bool
-    {
-        return $id === RouterInterface::class;
-    }
-
     public function boot(): void
     {
-        var_dump([__METHOD__, $this->routes]);
-        sleep(1);
-    }
-
-    public function register(): void
-    {
-        var_dump([__METHOD__, $this->routes]);
-        sleep(1);
-
         $this->getContainer()
             ->add(RouterInterface::class, Router::class)
             ->addArguments([
