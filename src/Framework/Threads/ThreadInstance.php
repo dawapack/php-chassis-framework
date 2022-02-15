@@ -7,12 +7,12 @@ namespace Chassis\Framework\Threads;
 use Chassis\Application;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
+use Chassis\Framework\Kernel;
+use Chassis\Framework\Routers\RouterInterface;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
 use Chassis\Framework\Workers\Worker;
 use Chassis\Framework\Workers\WorkerInterface;
-use DaWaPack\Kernel;
-use DaWaPack\Providers\WorkerRoutingServiceProvider;
 use parallel\Channel;
 use parallel\Channel\Error\Existence;
 use parallel\Events;
@@ -147,7 +147,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     string $basePath,
                     array $threadConfiguration,
                     Channel $workerChannel,
-                    Channel $threadChannel
+                    Channel $threadChannel,
+                    RouterInterface $router
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -160,6 +161,7 @@ class ThreadInstance implements ThreadInstanceInterface
                         ->addArguments([new Events(), LoggerInterface::class]);
                     /**
                      * Add channels to IPC instance
+                     *
                      * @var ParallelChannels $channels
                      */
                     $channels = $app->get(ChannelsInterface::class);
@@ -172,9 +174,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([ChannelsInterface::class, LoggerInterface::class]);
-
-                    // Register service provider
-                    $app->addServiceProvider(new WorkerRoutingServiceProvider());
+                    $app->add(RouterInterface::class, $router)
+                        ->setShared(false);
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
@@ -183,7 +184,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $basePath,
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
-                    $this->threadChannel
+                    $this->threadChannel,
+                    app(RouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {
