@@ -16,6 +16,7 @@ class BrokerResponse extends AbstractMessageBag
      */
     public function fromContext(MessageBagInterface $messageBag): BrokerResponse
     {
+        // response is allowed only for BrokerResponse instance type having reply to property set
         if (!($messageBag instanceof BrokerRequest) || is_null($messageBag->getProperty("reply_to"))) {
             return $this;
         }
