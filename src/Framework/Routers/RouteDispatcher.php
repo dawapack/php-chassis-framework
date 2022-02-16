@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
+use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Services\ServiceInterface;
+use function Chassis\Helpers\app;
 
 class RouteDispatcher
 {
@@ -27,8 +29,8 @@ class RouteDispatcher
             : $concreteService->{$this->method}();
 
         // handle response
-        if ($response instanceof MessageBagInterface) {
-            $this->dispatchResponse($response, $messageBag);
+        if ($response instanceof BrokerResponse) {
+            $this->dispatchResponse($response);
         }
 
         return true;
@@ -52,11 +54,11 @@ class RouteDispatcher
     }
 
     /**
-     * @param MessageBagInterface $response
+     * @param BrokerResponse $response
      *
      * @return void
      */
-    private function dispatchResponse(MessageBagInterface $response, MessageBagInterface $context): void
+    private function dispatchResponse(BrokerResponse $response): void
     {
         /**
          * use (AMQPdefault) exchange to send the message
@@ -68,5 +70,17 @@ class RouteDispatcher
          */
 
         // TODO: implement broker response
+
+        app()->logger()->info(
+            "dispatch response triggered",
+            [
+                "component" => "route_dispatcher_dispatch_response_info",
+                "response" => [
+                    "bindings" => $response->getBindings()->toArray(),
+                    "properties" => $response->getProperties()->toArray(),
+                    "body" => $response->getBody(),
+                ]
+            ]
+        );
     }
 }

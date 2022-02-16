@@ -6,6 +6,7 @@ namespace Chassis\Framework\Routers;
 
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
+use Chassis\Framework\Services\RoutingService;
 
 class Router implements RouterInterface
 {
@@ -30,8 +31,9 @@ class Router implements RouterInterface
     public function route(MessageBagInterface $messageBag): bool
     {
         if (!isset($this->routes[$messageBag->getProperty("type")])) {
-            throw new RouteNotFoundException(
-                sprintf("no route for message type '%s'", $messageBag->getProperty("type"))
+            return $this->dispatcher->dispatch(
+                [RoutingService::class, "routeNotfound"],
+                $messageBag
             );
         }
         return $this->dispatcher->dispatch($this->routes[$messageBag->getProperty("type")], $messageBag);
