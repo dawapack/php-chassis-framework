@@ -22,9 +22,9 @@ class RouteDispatcher
     {
         // broker service resolver
         $concreteService = $this->resolveRoute($route, $messageBag);
-        $response = !$this->invokable
-            ? $concreteService->{$this->method}()
-            : ($concreteService)($messageBag);
+        $response = $this->invokable
+            ? ($concreteService)($messageBag)
+            : $concreteService->{$this->method}();
 
         // handle response
         if ($response instanceof MessageBagInterface) {
@@ -44,11 +44,10 @@ class RouteDispatcher
     {
         if (is_string($route)) {
             $this->invokable = true;
-            $className = $route;
-        } else {
-            list($className, $this->method) = $route;
+            return new $route();
         }
 
+        list($className, $this->method) = $route;
         return new $className($messageBag);
     }
 
