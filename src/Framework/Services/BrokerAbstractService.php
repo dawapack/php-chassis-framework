@@ -27,7 +27,7 @@ class BrokerAbstractService implements ServiceInterface
         $this->app = app();
     }
 
-    public function response($body = ""): BrokerResponse
+    public function response($body = []): BrokerResponse
     {
         return new BrokerResponse($body, []);
     }
