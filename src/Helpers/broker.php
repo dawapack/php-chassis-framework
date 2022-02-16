@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Chassis\Helpers;
 
-use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManagerInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Closure;
