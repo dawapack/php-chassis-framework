@@ -7,7 +7,8 @@ namespace Chassis\Framework\Routers;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Services\ServiceInterface;
-use function Chassis\Helpers\app;
+
+use function Chassis\Helpers\publish;
 
 class RouteDispatcher
 {
@@ -42,7 +43,7 @@ class RouteDispatcher
      *
      * @return ServiceInterface
      */
-    private function resolveRoute($route, MessageBagInterface $messageBag): ServiceInterface
+    protected function resolveRoute($route, MessageBagInterface $messageBag): ServiceInterface
     {
         if (is_string($route)) {
             $this->invokable = true;
@@ -58,29 +59,8 @@ class RouteDispatcher
      *
      * @return void
      */
-    private function dispatchResponse(BrokerResponse $response): void
+    protected function dispatchResponse(BrokerResponse $response): void
     {
-        /**
-         * use (AMQPdefault) exchange to send the message
-         * copy correlation_id from context
-         * set routing_key from context reply_to
-         *  - on empty reply to, log the response as warning and exit
-         *
-         * we MUST use publish() helper to send the response
-         */
-
-        // TODO: implement broker response
-
-        app()->logger()->info(
-            "dispatch response triggered",
-            [
-                "component" => "route_dispatcher_dispatch_response_info",
-                "response" => [
-                    "bindings" => $response->getBindings()->toArray(),
-                    "properties" => $response->getProperties()->toArray(),
-                    "body" => $response->getBody(),
-                ]
-            ]
-        );
+        publish($response);
     }
 }

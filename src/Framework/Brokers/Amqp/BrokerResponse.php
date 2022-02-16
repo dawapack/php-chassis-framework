@@ -20,9 +20,10 @@ class BrokerResponse extends AbstractMessageBag
         if (!($messageBag instanceof BrokerRequest) || is_null($messageBag->getProperty("reply_to"))) {
             return $this;
         }
-        // copy properties context to response
+        // copy & adapt context properties to response
         $this->bindings->routingKey = $messageBag->getProperty("reply_to");
         $this->properties->correlation_id = $messageBag->getProperty("correlation_id");
+        $this->properties->type = $messageBag->getProperty("type") . "Response";
         if (isset($messageBag->properties->application_headers["jobId"])) {
             $this->properties->application_headers["jobId"] = $messageBag->properties->application_headers["jobId"];
         }

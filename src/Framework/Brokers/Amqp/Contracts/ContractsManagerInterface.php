@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Contracts;
 
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Closure;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
@@ -26,14 +27,14 @@ interface ContractsManagerInterface
     public function getChannels(): BrokerChannelsCollection;
 
     /**
-     * @param string $channelName
-     * @param BrokerRequest|BrokerResponse $data
+     * @param MessageBagInterface $messageBag
+     * @param string|null $channelName
      *
      * @return array
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    public function toBasicPublishFunctionArguments(string $channelName, $data): array;
+    public function toBasicPublishFunctionArguments(MessageBagInterface $messageBag, string $channelName): array;
 
     /**
      * @param string $channelName

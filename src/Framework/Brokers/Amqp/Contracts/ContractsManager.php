@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Contracts;
 
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Closure;
 use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfiguration;
 use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfigurationInterface;
@@ -56,17 +57,18 @@ class ContractsManager implements ContractsManagerInterface
     /**
      * @inheritDoc
      */
-    public function toBasicPublishFunctionArguments(string $channelName, $data): array
+    public function toBasicPublishFunctionArguments(MessageBagInterface $messageBag, string $channelName): array
     {
-        if (is_null($this->getChannel($channelName))) {
+        $brokerChannel = $this->getChannel($channelName);
+        if (!empty($channelName) && is_null($brokerChannel)) {
             throw new StreamerChannelNameNotFoundException("channel name '$channelName' not found");
         }
 
         return [
-            'message' => $data->toAmqpMessage(),
-            'exchange' => $this->getChannel($channelName)->channelBindings->name,
-            'routingKey' => $data->getRoutingKey(),
-            'mandatory' => $this->getChannel($channelName)->operationBindings->mandatory,
+            'message' => $messageBag->toAmqpMessage(),
+            'exchange' => $brokerChannel->channelBindings->name ?? '',
+            'routingKey' => $messageBag->getRoutingKey(),
+            'mandatory' => $brokerChannel->operationBindings->mandatory ?? false,
             'immediate' => false,
             'ticket' => null
         ];

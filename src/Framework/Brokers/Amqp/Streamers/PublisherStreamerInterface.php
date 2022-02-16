@@ -7,6 +7,7 @@ namespace Chassis\Framework\Brokers\Amqp\Streamers;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\Handlers\AckNackHandlerInterface;
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelClosedException;
 
 interface PublisherStreamerInterface
@@ -36,12 +37,16 @@ interface PublisherStreamerInterface
     public function setNackHandler(AckNackHandlerInterface $nackHandler): PublisherStreamerInterface;
 
     /**
-     * @param BrokerRequest|BrokerResponse $data
-     * @param string|null $channelName
+     * @param MessageBagInterface $messageBag
+     * @param string $channelName
      * @param int|float $publishAcknowledgeTimeout
      *
      * @return void
      * @throws StreamerChannelClosedException
      */
-    public function publish($data, ?string $channelName = null, $publishAcknowledgeTimeout = 5): void;
+    public function publish(
+        MessageBagInterface $messageBag,
+        string $channelName = "",
+        $publishAcknowledgeTimeout = 5
+    ): void;
 }

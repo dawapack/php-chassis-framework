@@ -7,6 +7,7 @@ namespace Chassis\Framework\Brokers\Amqp\Streamers;
 use Chassis\Framework\Brokers\Amqp\Handlers\AckNackHandlerInterface;
 use Chassis\Framework\Brokers\Amqp\Handlers\NullAckHandler;
 use Chassis\Framework\Brokers\Amqp\Handlers\NullNackHandler;
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
@@ -58,8 +59,11 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
     /**
      * @inheritDoc
      */
-    public function publish($data, ?string $channelName = null, $publishAcknowledgeTimeout = 5): void
-    {
+    public function publish(
+        MessageBagInterface $messageBag,
+        string $channelName = "",
+        $publishAcknowledgeTimeout = 5
+    ): void {
         try {
             // get a new channel
             $this->streamerChannel = $this->getChannel();
@@ -68,7 +72,7 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
             // basic publish
             $this->streamerChannel->basic_publish(
                 ...array_values(
-                    $this->contractsManager->toBasicPublishFunctionArguments($channelName, $data)
+                    $this->contractsManager->toBasicPublishFunctionArguments($messageBag, $channelName)
                 )
             );
             // wait for acknowledgements - ack or nack
