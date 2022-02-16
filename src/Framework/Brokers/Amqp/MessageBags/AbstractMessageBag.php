@@ -227,6 +227,9 @@ abstract class AbstractMessageBag implements MessageBagInterface
     private function decodeBody($body)
     {
         $decodedBody = $body;
+
+        var_dump($this->properties->toArray());
+
         switch ($this->properties->content_type) {
             case self::JSON_CONTENT_TYPE:
                 if (!is_string($decodedBody)) {
