@@ -15,6 +15,7 @@
     "ext-simplexml": "*",
     "ext-parallel": "*",
     "ext-pcntl": "*",
+    "ext-zlib": "*",
     "php": "^7.4",
     "dawapack/asyncapi-contract-sample": "^0",
     "league/config": "^1.1",

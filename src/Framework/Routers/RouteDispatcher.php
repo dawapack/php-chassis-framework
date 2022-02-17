@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
+use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Services\ServiceInterface;
+
+use function Chassis\Helpers\publish;
 
 class RouteDispatcher
 {
@@ -22,13 +25,13 @@ class RouteDispatcher
     {
         // broker service resolver
         $concreteService = $this->resolveRoute($route, $messageBag);
-        $response = !$this->invokable
-            ? $concreteService->{$this->method}()
-            : ($concreteService)($messageBag);
+        $response = $this->invokable
+            ? ($concreteService)($messageBag)
+            : $concreteService->{$this->method}();
 
         // handle response
-        if ($response instanceof MessageBagInterface) {
-            $this->dispatchResponse($response, $messageBag);
+        if ($response instanceof BrokerResponse) {
+            $this->dispatchResponse($response);
         }
 
         return true;
@@ -40,34 +43,24 @@ class RouteDispatcher
      *
      * @return ServiceInterface
      */
-    private function resolveRoute($route, MessageBagInterface $messageBag): ServiceInterface
+    protected function resolveRoute($route, MessageBagInterface $messageBag): ServiceInterface
     {
         if (is_string($route)) {
             $this->invokable = true;
-            $className = $route;
-        } else {
-            list($className, $this->method) = $route;
+            return new $route();
         }
 
+        list($className, $this->method) = $route;
         return new $className($messageBag);
     }
 
     /**
-     * @param MessageBagInterface $response
+     * @param BrokerResponse $response
      *
      * @return void
      */
-    private function dispatchResponse(MessageBagInterface $response, MessageBagInterface $context): void
+    protected function dispatchResponse(BrokerResponse $response): void
     {
-        /**
-         * use (AMQPdefault) exchange to send the message
-         * copy correlation_id from context
-         * set routing_key from context reply_to
-         *  - on empty reply to, log the response as warning and exit
-         *
-         * we MUST use publish() helper to send the response
-         */
-
-        // TODO: implement broker response
+        publish($response);
     }
 }

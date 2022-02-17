@@ -55,9 +55,6 @@ class Worker implements WorkerInterface
                 if (!$this->polling()) {
                     break;
                 }
-                // Route new message to service
-                $this->routeMessage();
-
                 // Wait a while - prevent CPU load
                 $this->loopWait($startAt);
             } while (true);
@@ -99,33 +96,6 @@ class Worker implements WorkerInterface
         }
 
         return $polling;
-    }
-
-    /**
-     * @return void
-     */
-    private function routeMessage(): void
-    {
-        if (!isset($this->subscriberStreamer)) {
-            return;
-        }
-        if (!$this->subscriberStreamer->consumed()) {
-            return;
-        }
-
-        try {
-            /** @var Router $router */
-            $router = app(RouterInterface::class);
-            $router->route($this->subscriberStreamer->get());
-        } catch (Throwable $reason) {
-            $this->logger->error(
-                $reason->getMessage(),
-                [
-                    'component' => self::LOGGER_COMPONENT_PREFIX . "route_message_exception",
-                    'error' => $reason
-                ]
-            );
-        }
     }
 
     /**

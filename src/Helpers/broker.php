@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Chassis\Helpers;
 
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Closure;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
@@ -14,20 +16,21 @@ use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
 
 if (!function_exists('publish')) {
     /**
-     * @param BrokerRequest|BrokerResponse $data
+     * @param MessageBagInterface $messageBag
      * @param string|null $channelName
-     * @param BrokerRequest|null $context
      *
      * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
-    function publish($data, ?string $channelName = null, ?BrokerRequest $context = null): void
-    {
-        // set routing key from given context
-        if (($context instanceof BrokerRequest) && !is_null($context->getProperty('reply_to'))) {
-            $data->setRoutingKey($context->getProperty('reply_to'));
-        }
-        app(PublisherStreamerInterface::class)
-            ->publish($data, $channelName);
+    function publish(
+        MessageBagInterface $messageBag,
+        string $channelName = "",
+        int $publishAcknowledgeTimeout = 5
+    ): void {
+        /** @var PublisherStreamer $publisher */
+        $publisher = app(PublisherStreamerInterface::class);
+        $publisher->publish($messageBag, $channelName, $publishAcknowledgeTimeout);
     }
 }
 

@@ -12,6 +12,8 @@ use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfigurationInterface;
 use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManager;
 use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManagerInterface;
 use Chassis\Framework\Brokers\Amqp\Contracts\ContractsValidator;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
 use Chassis\Framework\Configuration\Configuration;
@@ -231,6 +233,12 @@ class Application extends Container implements ArrayAccess
             );
         })->addArgument($this)->setShared(false);
         $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
+            ->addArguments([
+                $this->get('brokerStreamConnection'),
+                ContractsManagerInterface::class,
+                LoggerInterface::class
+            ])->setShared(false);
+        $this->add(PublisherStreamerInterface::class, PublisherStreamer::class)
             ->addArguments([
                 $this->get('brokerStreamConnection'),
                 ContractsManagerInterface::class,

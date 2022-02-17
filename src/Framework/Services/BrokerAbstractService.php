@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chassis\Framework\Services;
 
 use Chassis\Application;
+use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 
 use function Chassis\Helpers\app;
@@ -24,5 +25,10 @@ class BrokerAbstractService implements ServiceInterface
     ) {
         $this->messageBag = $messageBag;
         $this->app = app();
+    }
+
+    public function response($body = []): BrokerResponse
+    {
+        return new BrokerResponse($body, []);
     }
 }

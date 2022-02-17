@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
-use Closure;
-use Chassis\Framework\Brokers\Amqp\BrokerRequest;
-use Chassis\Framework\Brokers\Amqp\BrokerResponse;
+use Chassis\Framework\Routers\Router;
+use Chassis\Framework\Routers\RouterInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
+use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -28,12 +28,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     private int $qosPrefetchSize;
     private int $qosPrefetchCount;
     private bool $qosPerConsumer;
-    private bool $consumed = false;
-
-    /**
-     * @var BrokerRequest|BrokerResponse|null
-     */
-    private $messageBag;
 
     /**
      * @inheritdoc
@@ -103,24 +97,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         return $this->qosPerConsumer;
     }
 
-    public function consumed(): bool
-    {
-        return $this->consumed;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function get()
-    {
-        $messageBag = $this->messageBag ?? null;
-        if ($this->consumed()) {
-            unset($this->messageBag);
-            $this->consumed = false;
-        }
-        return $messageBag;
-    }
-
     /**
      * @inheritdoc
      */
@@ -172,50 +148,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     }
 
     /**
-     * @param AMQPMessage $message
-     * @param bool $acknowledge
-     * @param bool $holdData
-     *
-     * @return BrokerRequest|BrokerResponse|null
-     */
-    protected function handleData(AMQPMessage $message, bool $acknowledge, bool $holdData = true)
-    {
-        try {
-            // create message bag from AMQP message
-            $messageBag = new $this->handler(
-                $message->getBody(),
-                $message->get_properties(),
-                $message->getConsumerTag()
-            );
-
-            if ($holdData === true) {
-                $this->messageBag = $messageBag;
-            }
-
-            if ($acknowledge === true) {
-                $message->ack();
-            }
-
-            $this->consumed = true;
-
-            return $messageBag;
-        } catch (Throwable $reason) {
-            app()->logger()->error(
-                $reason->getMessage(),
-                [
-                    'component' => self::LOGGER_COMPONENT_PREFIX . 'handle_data_exception',
-                    'error' => $reason
-                ]
-            );
-        }
-
-        // negative acknowledgement
-        $message->nack();
-
-        return null;
-    }
-
-    /**
      * @return Closure
      */
     protected function getDefaultConsumerCallback(): Closure
@@ -223,8 +155,36 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         $subscriber = $this;
         return function (AMQPMessage $message) use ($subscriber) {
             $channel = $subscriber->getContractManager()->getChannel($subscriber->getChannelName());
-            // handle message
-            $subscriber->handleData($message, $channel->operationBindings->ack);
+            try {
+                // create message bag
+                $messageBag = new $subscriber->handler(
+                    $message->getBody(),
+                    $message->get_properties(),
+                    $message->getConsumerTag()
+                );
+
+                /** @var Router $router */
+                $router = app(RouterInterface::class);
+                $router->route($messageBag);
+
+                // ack the message?
+                if ($channel->operationBindings->ack) {
+                    $message->ack();
+                }
+
+                return;
+            } catch (Throwable $reason) {
+                app()->logger()->error(
+                    $reason->getMessage(),
+                    [
+                        'component' => self::LOGGER_COMPONENT_PREFIX . 'handle_data_exception',
+                        'error' => $reason
+                    ]
+                );
+            }
+
+            // nack handler - on error
+            $message->nack(!$message->isRedelivered());
         };
     }
 
