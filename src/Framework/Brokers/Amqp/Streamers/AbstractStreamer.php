@@ -163,9 +163,6 @@ abstract class AbstractStreamer implements StreamerInterface
         }
 
         if (time() > ($this->heartbeatLastActivity + $interval)) {
-
-            var_dump($this->channelName . "send heartbeat");
-
             $this->streamerConnection->checkHeartBeat();
             $this->heartbeatLastActivity = time();
         }
