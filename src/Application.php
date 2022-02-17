@@ -231,7 +231,7 @@ class Application extends Container implements ArrayAccess
                     $app->get(ContractsManagerInterface::class)->toStreamConnectionFunctionArguments()
                 )
             );
-        })->addArgument($this)->setShared(false);
+        })->addArgument($this);
         $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
             ->addArguments([
                 $this->get('brokerStreamConnection'),
