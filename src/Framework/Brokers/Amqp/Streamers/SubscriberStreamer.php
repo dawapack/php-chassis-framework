@@ -221,15 +221,46 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     private function toFunctionArguments(?Closure $callback): array
     {
+        $channelName = $this->getChannelName() ?? "";
         if (is_null($callback)) {
             $callback = $this->getDefaultConsumerCallback();
         }
-
-        $channelName = $this->getChannelName() ?? "";
+        if (empty($channelName)) {
+            return $this->fromAnonymousExclusiveCallbackQueue($callback);
+        }
 
         return array_values(
             $this->contractsManager
                 ->toBasicConsumeFunctionArguments($channelName, $callback)
         );
+    }
+
+    /**
+     * @param Closure $callback
+     *
+     * @return array
+     */
+    private function fromAnonymousExclusiveCallbackQueue(Closure $callback): array
+    {
+        // declare anonymous temporary queue
+        list($this->queueName) = $this->streamChannel->queue_declare(
+            '',
+            false,
+            false,
+            true,
+            true
+        );
+
+        return [
+            'queue' => $this->queueName,
+            'consumer_tag' => '',
+            'no_local' => false,
+            'no_ack' => false,
+            'exclusive' => true,
+            'nowait' => false,
+            'callback' => $callback,
+            'ticket' => null,
+            'arguments' => [],
+        ];
     }
 }

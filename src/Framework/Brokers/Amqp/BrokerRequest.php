@@ -7,9 +7,16 @@ namespace Chassis\Framework\Brokers\Amqp;
 use Chassis\Framework\Brokers\Amqp\MessageBags\AbstractMessageBag;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\RequestMessageBagInterface;
+use Closure;
+use PhpAmqpLib\Message\AMQPMessage;
+
+use function Chassis\Helpers\publish;
+use function Chassis\Helpers\remoteProcedureCall;
 
 class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInterface
 {
+    protected Closure $callback;
+
     /**
      * @inheritdoc
      */
@@ -78,17 +85,13 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
         return $this;
     }
 
-    /**
-     * @param string $routingKey
-     * @param string $channelName
-     *
-     * @return BrokerResponse
-     * @throws \Chassis\Framework\Brokers\Exceptions\MessageBagFormatException
-     * @throws \JsonException
-     */
-    public function send(string $routingKey, string $channelName = ""): BrokerResponse
+    public function call(): ?BrokerResponse
     {
-        // TODO: implement send mechanism - use RemoteProcedureCallStreamer::class
-        return new BrokerResponse([]);
+        return remoteProcedureCall($this);
+    }
+
+    public function push(): void
+    {
+        publish($this);
     }
 }
