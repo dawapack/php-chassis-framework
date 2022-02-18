@@ -62,4 +62,10 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
         $this->bindings->queue = $queueName;
         return $this;
     }
+
+    public function send(string $channelName, string $routingKey): BrokerResponse
+    {
+        // TODO: implement send mechanism - use RemoteProcedureCallStreamer::class
+        return new BrokerResponse([]);
+    }
 }
