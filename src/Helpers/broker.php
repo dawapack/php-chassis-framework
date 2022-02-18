@@ -84,10 +84,13 @@ if (!function_exists('remoteProcedureCall')) {
                 $message->ack();
             }
         );
+
         // update reply to message property
         $message->setReplyTo($subscriber->getQueueName());
+
         // publish
         publish($message);
+
         // iterate consumer
         $until = time() + $timeout;
         do {
@@ -96,6 +99,7 @@ if (!function_exists('remoteProcedureCall')) {
             usleep(50000);
         } while ($until > time() && is_null($response));
 
+        // close the channel - mandatory
         $subscriber->closeChannel();
 
         return $response;
