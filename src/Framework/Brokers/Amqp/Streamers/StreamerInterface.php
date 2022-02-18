@@ -31,9 +31,4 @@ interface StreamerInterface
      * @return string|null
      */
     public function getQueueName(): ?string;
-
-    /**
-     * @return bool
-     */
-//    public function disconnect(): bool;
 }

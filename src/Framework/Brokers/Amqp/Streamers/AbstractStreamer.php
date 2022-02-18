@@ -76,14 +76,6 @@ abstract class AbstractStreamer implements StreamerInterface
         $this->transformDeclareMapperArguments();
     }
 
-//    /**
-//     * AbstractStreamer destructor.
-//     */
-//    public function __destruct()
-//    {
-//        $this->disconnect();
-//    }
-
     /**
      * @inheritdoc
      */
@@ -122,25 +114,6 @@ abstract class AbstractStreamer implements StreamerInterface
     {
         return $this->contractsManager;
     }
-
-//    /**
-//     * @inheritDoc
-//     */
-//    public function disconnect(): bool
-//    {
-//        try {
-//            if (!$this->streamerConnection->isConnected()) {
-//                throw new AMQPConnectionClosedException();
-//            }
-//            if (isset($this->streamerConnection)) {
-//                $this->streamerConnection->close();
-//            }
-//        } catch (Throwable $reason) {
-//            // Fault-tolerant
-//            return false;
-//        }
-//        return true;
-//    }
 
     /**
      * @inheritdoc

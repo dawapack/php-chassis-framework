@@ -6,13 +6,12 @@ namespace Chassis\Framework\Brokers\Amqp;
 
 use Chassis\Framework\Brokers\Amqp\MessageBags\AbstractMessageBag;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Brokers\Amqp\MessageBags\ResponseMessageBagInterface;
 
-class BrokerResponse extends AbstractMessageBag
+class BrokerResponse extends AbstractMessageBag implements ResponseMessageBagInterface
 {
     /**
-     * @param MessageBagInterface $messageBag
-     *
-     * @return $this
+     * @inheritdoc
      */
     public function fromContext(MessageBagInterface $messageBag): BrokerResponse
     {
@@ -31,10 +30,7 @@ class BrokerResponse extends AbstractMessageBag
     }
 
     /**
-     * @param string $name
-     * @param mixed $value
-     *
-     * @return $this
+     * @inheritdoc
      */
     public function setHeader(string $name, $value): BrokerResponse
     {
@@ -43,9 +39,7 @@ class BrokerResponse extends AbstractMessageBag
     }
 
     /**
-     * @param array $headers
-     *
-     * @return $this
+     * @inheritdoc
      */
     public function setHeaders(array $headers): BrokerResponse
     {
@@ -56,6 +50,9 @@ class BrokerResponse extends AbstractMessageBag
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setStatus(int $code, string $message = ""): BrokerResponse
     {
         $this->setHeaders([
