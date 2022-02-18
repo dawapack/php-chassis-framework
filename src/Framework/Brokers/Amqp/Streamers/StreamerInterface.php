@@ -35,5 +35,5 @@ interface StreamerInterface
     /**
      * @return bool
      */
-    public function disconnect(): bool;
+//    public function disconnect(): bool;
 }

@@ -76,13 +76,13 @@ abstract class AbstractStreamer implements StreamerInterface
         $this->transformDeclareMapperArguments();
     }
 
-    /**
-     * AbstractStreamer destructor.
-     */
-    public function __destruct()
-    {
-        $this->disconnect();
-    }
+//    /**
+//     * AbstractStreamer destructor.
+//     */
+//    public function __destruct()
+//    {
+//        $this->disconnect();
+//    }
 
     /**
      * @inheritdoc
@@ -123,45 +123,40 @@ abstract class AbstractStreamer implements StreamerInterface
         return $this->contractsManager;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function disconnect(): bool
-    {
-        try {
-            if (!$this->streamerConnection->isConnected()) {
-                throw new AMQPConnectionClosedException();
-            }
-            if (isset($this->heartbeatSender)) {
-                $this->heartbeatSender->unregister();
-                unset($this->heartbeatSender);
-            }
-            if (isset($this->streamerConnection)) {
-                $this->streamerConnection->close();
-            }
-        } catch (Throwable $reason) {
-            // Fault-tolerant
-            return false;
-        }
-        return true;
-    }
+//    /**
+//     * @inheritDoc
+//     */
+//    public function disconnect(): bool
+//    {
+//        try {
+//            if (!$this->streamerConnection->isConnected()) {
+//                throw new AMQPConnectionClosedException();
+//            }
+//            if (isset($this->streamerConnection)) {
+//                $this->streamerConnection->close();
+//            }
+//        } catch (Throwable $reason) {
+//            // Fault-tolerant
+//            return false;
+//        }
+//        return true;
+//    }
 
     /**
      * @inheritdoc
      */
     protected function checkHeartbeat(): void
     {
-        $interval = ceil($this->streamerConnection->getHeartbeat() / 2);
-        if ($this->streamerConnection->getHeartbeat() === 0) {
-            return;
-        }
-        if (!$this->streamerConnection->isConnected()) {
-            return;
-        }
-        if ($this->streamerConnection->isWriting()) {
+        $heartbeat = $this->streamerConnection->getHeartbeat();
+        if (
+            $heartbeat === 0
+            || !$this->streamerConnection->isConnected()
+            || $this->streamerConnection->isWriting()
+        ) {
             return;
         }
 
+        $interval = ceil($heartbeat / 2);
         if (time() > ($this->heartbeatLastActivity + $interval)) {
             $this->streamerConnection->checkHeartBeat();
             $this->heartbeatLastActivity = time();

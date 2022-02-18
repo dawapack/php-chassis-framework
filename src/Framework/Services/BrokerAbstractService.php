@@ -14,16 +14,19 @@ class BrokerAbstractService implements ServiceInterface
 {
     protected const LOGGER_COMPONENT_PREFIX = "broker_service_";
 
-    protected MessageBagInterface $messageBag;
+    protected MessageBagInterface $message;
     protected Application $app;
 
     /**
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
+     *
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public function __construct(
-        MessageBagInterface $messageBag
+        MessageBagInterface $message
     ) {
-        $this->messageBag = $messageBag;
+        $this->message = $message;
         $this->app = app();
     }
 
