@@ -29,11 +29,11 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     private int $qosPrefetchCount;
     private bool $qosPerConsumer;
 
-    public function __destruct()
+    public function closeChannel()
     {
-        if ($this->streamChannel->is_open()) {
-            $this->streamChannel->close();
-        }
+        var_dump($this->streamChannel->is_open());
+        $this->streamChannel->close();
+        var_dump($this->streamChannel->is_open());
     }
 
     /**
