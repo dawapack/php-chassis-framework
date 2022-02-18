@@ -111,6 +111,27 @@ abstract class AbstractMessageBag implements MessageBagInterface
     /**
      * @inheritdoc
      */
+    public function setHeader(string $name, $value): self
+    {
+        $this->properties->application_headers[$name] = $value;
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setHeaders(array $headers): self
+    {
+        $this->properties->application_headers = array_merge(
+            $this->properties->application_headers,
+            $headers
+        );
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function setBody(
         $body,
         string $contentType = "application/json",

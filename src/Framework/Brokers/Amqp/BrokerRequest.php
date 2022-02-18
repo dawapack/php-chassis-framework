@@ -5,10 +5,25 @@ declare(strict_types=1);
 namespace Chassis\Framework\Brokers\Amqp;
 
 use Chassis\Framework\Brokers\Amqp\MessageBags\AbstractMessageBag;
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\RequestMessageBagInterface;
 
 class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInterface
 {
+    /**
+     * @inheritdoc
+     */
+    public function fromContext(MessageBagInterface $messageBag, string $operation): BrokerRequest
+    {
+        // copy & adapt context properties to response
+        $this->setMessageType($operation);
+        if (isset($messageBag->properties->application_headers["jobId"])) {
+            $this->setHeader("jobId", $messageBag->properties->application_headers["jobId"]);
+        }
+
+        return $this;
+    }
+
     /**
      * @inheritdoc
      */

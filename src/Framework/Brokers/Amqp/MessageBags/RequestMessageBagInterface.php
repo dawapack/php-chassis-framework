@@ -7,6 +7,14 @@ namespace Chassis\Framework\Brokers\Amqp\MessageBags;
 interface RequestMessageBagInterface
 {
     /**
+     * @param MessageBagInterface $messageBag
+     * @param string $operation
+     *
+     * @return $this
+     */
+    public function fromContext(MessageBagInterface $messageBag, string $operation): self;
+
+    /**
      * @param string $messageType
      *
      * @return $this

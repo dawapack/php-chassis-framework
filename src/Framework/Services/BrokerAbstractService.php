@@ -33,12 +33,13 @@ class BrokerAbstractService implements ServiceInterface
 
     public function response($body = []): BrokerResponse
     {
-        return new BrokerResponse($body, []);
+        return (new BrokerResponse($body, []))
+            ->fromContext($this->message);
     }
 
     public function request(string $operation, array $body): BrokerRequest
     {
         return (new BrokerRequest($body))
-            ->setMessageType($operation);
+            ->fromContext($this->message, $operation);
     }
 }

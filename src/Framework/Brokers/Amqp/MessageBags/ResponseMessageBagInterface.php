@@ -14,21 +14,6 @@ interface ResponseMessageBagInterface
     public function fromContext(MessageBagInterface $messageBag): self;
 
     /**
-     * @param string $name
-     * @param mixed $value
-     *
-     * @return $this
-     */
-    public function setHeader(string $name, $value): self;
-
-    /**
-     * @param array $headers
-     *
-     * @return $this
-     */
-    public function setHeaders(array $headers): self;
-
-    /**
      * @param int $code
      * @param string $message
      *

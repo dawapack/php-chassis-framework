@@ -58,6 +58,21 @@ interface MessageBagInterface
     ): self;
 
     /**
+     * @param string $name
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function setHeader(string $name, $value): self;
+
+    /**
+     * @param array $headers
+     *
+     * @return $this
+     */
+    public function setHeaders(array $headers): self;
+
+    /**
      * @return AMQPMessage
      */
     public function toAmqpMessage(): AMQPMessage;

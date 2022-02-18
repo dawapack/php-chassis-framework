@@ -32,27 +32,6 @@ class BrokerResponse extends AbstractMessageBag implements ResponseMessageBagInt
     /**
      * @inheritdoc
      */
-    public function setHeader(string $name, $value): BrokerResponse
-    {
-        $this->properties->application_headers[$name] = $value;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setHeaders(array $headers): BrokerResponse
-    {
-        $this->properties->application_headers = array_merge(
-            $this->properties->application_headers,
-            $headers
-        );
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function setStatus(int $code, string $message = ""): BrokerResponse
     {
         $this->setHeaders([
