@@ -95,6 +95,7 @@ if (!function_exists('remoteProcedureCall')) {
             // wait a while - prevent CPU load
             usleep(50000);
         } while ($until > time() && is_null($response));
+        unset($subscriber);
 
         return $response;
     }
