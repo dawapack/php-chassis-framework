@@ -226,7 +226,9 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             $callback = $this->getDefaultConsumerCallback();
         }
         if (empty($channelName)) {
-            return $this->fromAnonymousExclusiveCallbackQueue($callback);
+            return array_values(
+                $this->fromAnonymousExclusiveCallbackQueue($callback)
+            );
         }
 
         return array_values(
