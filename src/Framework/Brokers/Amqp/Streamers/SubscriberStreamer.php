@@ -31,9 +31,9 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
 
     public function closeChannel()
     {
-        var_dump($this->streamChannel->is_open());
-        $this->streamChannel->close();
-        var_dump($this->streamChannel->is_open());
+        if ($this->streamChannel->is_open()) {
+            $this->streamChannel->close();
+        }
     }
 
     /**
