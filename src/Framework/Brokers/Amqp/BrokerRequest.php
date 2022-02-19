@@ -23,9 +23,6 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
         if (isset($messageBag->properties->application_headers["jobId"])) {
             $this->setHeader("jobId", $messageBag->properties->application_headers["jobId"]);
         }
-
-        var_dump([$messageBag->properties->application_headers, $this->properties->application_headers]);
-
         return $this;
     }
 
