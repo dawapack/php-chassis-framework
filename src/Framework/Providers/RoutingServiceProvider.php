@@ -7,9 +7,6 @@ use Chassis\Framework\Routers\Router;
 use Chassis\Framework\Routers\RouterInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 
-use League\Container\ServiceProvider\BootableServiceProviderInterface;
-use function Chassis\Helpers\app;
-
 abstract class RoutingServiceProvider extends AbstractServiceProvider
 {
     protected array $routes = [];
@@ -23,6 +20,6 @@ abstract class RoutingServiceProvider extends AbstractServiceProvider
     {
         $this->getContainer()
             ->add(RouterInterface::class, Router::class)
-            ->addArgument($this->routes);
+            ->addArgument([new RouteDispatcher(), $this->routes]);
     }
 }

@@ -7,17 +7,23 @@ namespace Chassis\Framework\Routers;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
 use Chassis\Framework\Services\RoutingService;
+use phpDocumentor\Reflection\Types\This;
 
 class Router implements RouterInterface
 {
+    private RouteDispatcher $dispatcher;
     private array $routes;
 
     /**
+     * @param RouteDispatcher $dispatcher
      * @param array $routes
      */
-    public function __construct(array $routes)
-    {
+    public function __construct(
+        RouteDispatcher $dispatcher,
+        array $routes
+    ) {
         $this->routes = $routes;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -25,17 +31,8 @@ class Router implements RouterInterface
      */
     public function route(MessageBagInterface $message): bool
     {
-        if (!isset($this->routes[$message->getProperty("type")])) {
-            return (new RouteDispatcher())
-                ->dispatch(
-                    [RoutingService::class, "routeNotfound"],
-                    $message
-                );
-        }
-        return (new RouteDispatcher())
-            ->dispatch(
-                $this->routes[$message->getProperty("type")],
-                $message
-            );
+        $route = $this->routes[$message->getProperty("type")] ?? [RoutingService::class, "routeNotfound"];
+
+        return $this->dispatcher->dispatch($route, $message);
     }
 }

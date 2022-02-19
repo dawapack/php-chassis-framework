@@ -6,15 +6,11 @@ namespace Chassis\Framework\Routers;
 
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
-use Chassis\Framework\Services\ServiceInterface;
 
 use function Chassis\Helpers\publish;
 
 class RouteDispatcher
 {
-    private string $method;
-    private bool $invokable = false;
-
     /**
      * @param array|string $route
      * @param MessageBagInterface $message
@@ -24,12 +20,12 @@ class RouteDispatcher
     public function dispatch($route, MessageBagInterface $message): bool
     {
         // broker service resolver
-        $concreteService = $this->resolveRoute($route, $message);
-        $response = $this->invokable
-            ? ($concreteService)($message)
-            : $concreteService->{$this->method}();
+        $service = $this->resolveRoute($route, $message);
+        $response = $service["invokable"]
+            ? ($service["instance"])($message)
+            : $service["instance"]->{$service["method"]}();
 
-        // handle response
+        // dispatch response?
         if ($response instanceof BrokerResponse) {
             $this->dispatchResponse($response);
         }
@@ -41,17 +37,22 @@ class RouteDispatcher
      * @param array|string $route
      * @param MessageBagInterface $message
      *
-     * @return ServiceInterface
+     * @return array
      */
-    protected function resolveRoute($route, MessageBagInterface $message): ServiceInterface
+    protected function resolveRoute($route, MessageBagInterface $message): array
     {
+        $service = ['invokable' => false];
         if (is_string($route)) {
-            $this->invokable = true;
-            return new $route();
+            $service["invokable"] = true;
+            $service["instance"] = new $route();
+
+            return $service;
         }
 
-        list($className, $this->method) = $route;
-        return new $className($message);
+        list($service["class"], $service["method"]) = $route;
+        $service["instance"] = new $service["class"]($message);
+
+        return $service;
     }
 
     /**
