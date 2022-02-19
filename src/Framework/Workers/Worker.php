@@ -122,6 +122,8 @@ class Worker implements WorkerInterface
                     ),
                     $this->logger
                 ))->brokerChannelsSetup();
+                // wait a while - rabbitmq must finish exchanges, queues & bindings initializations
+                sleep(5);
                 break;
             case "configuration":
                 // TODO: implement configuration listener - (centralized configuration server feature)
