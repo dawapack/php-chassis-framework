@@ -174,8 +174,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([ChannelsInterface::class, LoggerInterface::class]);
-                    $app->add(RouterInterface::class, $router)
-                        ->setShared(false);
+                    $app->add(RouterInterface::class, $router);
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
