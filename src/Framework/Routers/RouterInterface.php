@@ -9,9 +9,9 @@ use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 interface RouterInterface
 {
     /**
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
      *
      * @return bool
      */
-    public function route(MessageBagInterface $messageBag): bool;
+    public function route(MessageBagInterface $message): bool;
 }

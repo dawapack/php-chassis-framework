@@ -10,37 +10,32 @@ use Chassis\Framework\Services\RoutingService;
 
 class Router implements RouterInterface
 {
-    private RouteDispatcher $dispatcher;
     private array $routes;
 
     /**
-     * @param RouteDispatcher $dispatcher
      * @param array $routes
      */
-    public function __construct(
-        RouteDispatcher $dispatcher,
-        array $routes
-    ) {
-        $this->dispatcher = $dispatcher;
+    public function __construct(array $routes)
+    {
         $this->routes = $routes;
     }
 
     /**
      * @inheritDoc
      */
-    public function route(MessageBagInterface $messageBag): bool
+    public function route(MessageBagInterface $message): bool
     {
-        if (!isset($this->routes[$messageBag->getProperty("type")])) {
-            return $this->dispatcher->dispatch(
-                [RoutingService::class, "routeNotfound"],
-                $messageBag
-            );
+        if (!isset($this->routes[$message->getProperty("type")])) {
+            return (new RouteDispatcher())
+                ->dispatch(
+                    [RoutingService::class, "routeNotfound"],
+                    $message
+                );
         }
         return (new RouteDispatcher())
             ->dispatch(
-                $this->routes[$messageBag->getProperty("type")],
-                $messageBag
+                $this->routes[$message->getProperty("type")],
+                $message
             );
-//        return $this->dispatcher->dispatch($this->routes[$messageBag->getProperty("type")], $messageBag);
     }
 }
