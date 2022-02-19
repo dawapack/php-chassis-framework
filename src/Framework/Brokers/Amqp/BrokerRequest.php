@@ -7,16 +7,12 @@ namespace Chassis\Framework\Brokers\Amqp;
 use Chassis\Framework\Brokers\Amqp\MessageBags\AbstractMessageBag;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\RequestMessageBagInterface;
-use Closure;
-use PhpAmqpLib\Message\AMQPMessage;
 
 use function Chassis\Helpers\publish;
 use function Chassis\Helpers\remoteProcedureCall;
 
 class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInterface
 {
-    protected Closure $callback;
-
     /**
      * @inheritdoc
      */
