@@ -119,13 +119,9 @@ class Worker implements WorkerInterface
                 ))->brokerChannelsSetup();
                 break;
             case "configuration":
-                // wait after infrastructure to finish exchange/queues/bindings declarations
-                usleep(rand(2000000, 4000000));
                 // TODO: implement configuration listener - (centralized configuration server feature)
                 break;
             case "worker":
-                // wait after infrastructure to finish exchange/queues/bindings declarations
-                usleep(rand(2000000, 5000000));
                 // create subscriber
                 $this->subscriberStreamer = subscribe(
                     $threadConfiguration["channelName"],

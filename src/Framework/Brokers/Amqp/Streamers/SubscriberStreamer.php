@@ -29,13 +29,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     private int $qosPrefetchCount;
     private bool $qosPerConsumer;
 
-    public function closeChannel()
-    {
-        if ($this->streamChannel->is_open()) {
-            $this->streamChannel->close();
-        }
-    }
-
     /**
      * @inheritdoc
      */
@@ -113,14 +106,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         $this->setStreamChannelQOS();
         $this->streamChannel->basic_consume(...$this->toFunctionArguments($callback));
 
-        $this->logger->debug(
-            "debug info",
-            [
-                'component' => self::LOGGER_COMPONENT_PREFIX . "start_consuming",
-                'channel' => $this->channelName
-            ]
-        );
-
         return $this;
     }
 
@@ -136,6 +121,16 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         }
         // check heartbeat
         $this->checkHeartbeat();
+    }
+
+    /**
+     * @return void
+     */
+    public function closeChannel(): void
+    {
+        if ($this->streamChannel->is_open()) {
+            $this->streamChannel->close();
+        }
     }
 
     /**

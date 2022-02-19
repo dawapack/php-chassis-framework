@@ -85,9 +85,9 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
         return $this;
     }
 
-    public function call(): ?BrokerResponse
+    public function call(int $timeout = 30): ?BrokerResponse
     {
-        return remoteProcedureCall($this);
+        return remoteProcedureCall($this, $timeout);
     }
 
     public function push(): void
