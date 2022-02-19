@@ -72,6 +72,11 @@ class Worker implements WorkerInterface
                 (new IPCMessage())->set(ParallelChannels::METHOD_RESPAWN_REQUESTED)
             );
         }
+
+        // Close subscriber streamer channel
+        if (isset($this->subscriberStreamer)) {
+            $this->subscriberStreamer->closeChannel();
+        }
     }
 
     /**
