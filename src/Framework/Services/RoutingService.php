@@ -13,6 +13,9 @@ class RoutingService extends BrokerAbstractService
      */
     public function routeNotfound()
     {
+
+        var_dump([__METHOD__, $this->message]);
+
         if (empty($this->message->getProperty("reply_to"))) {
             return;
         }
