@@ -122,13 +122,13 @@ class Worker implements WorkerInterface
                     ),
                     $this->logger
                 ))->brokerChannelsSetup();
-                // wait a while - rabbitmq must finish exchanges, queues & bindings initializations
-                sleep(5);
                 break;
             case "configuration":
                 // TODO: implement configuration listener - (centralized configuration server feature)
                 break;
             case "worker":
+                // wait a while - infrastructure must declare exchanges, queues & bindings
+                usleep(rand(2500000, 4000000));
                 // create subscriber
                 $this->subscriberStreamer = subscribe(
                     $threadConfiguration["channelName"],
