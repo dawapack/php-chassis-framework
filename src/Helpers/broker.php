@@ -95,10 +95,10 @@ if (!function_exists('remoteProcedureCall')) {
         $until = time() + $timeout;
         do {
             // wait a while - prevent CPU load
-            usleep(10000);
+            usleep(1000);
             $subscriber->iterate();
             // wait a while - prevent CPU load
-            usleep(40000);
+            usleep(49000);
         } while ($until > time() && is_null($response));
 
         // close the channel - mandatory
