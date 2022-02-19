@@ -17,16 +17,16 @@ class RouteDispatcher
 
     /**
      * @param array|string $route
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
      *
      * @return bool
      */
-    public function dispatch($route, MessageBagInterface $messageBag): bool
+    public function dispatch($route, MessageBagInterface $message): bool
     {
         // broker service resolver
-        $concreteService = $this->resolveRoute($route, $messageBag);
+        $concreteService = $this->resolveRoute($route, $message);
         $response = $this->invokable
-            ? ($concreteService)($messageBag)
+            ? ($concreteService)($message)
             : $concreteService->{$this->method}();
 
         // handle response
@@ -39,11 +39,11 @@ class RouteDispatcher
 
     /**
      * @param array|string $route
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
      *
      * @return ServiceInterface
      */
-    protected function resolveRoute($route, MessageBagInterface $messageBag): ServiceInterface
+    protected function resolveRoute($route, MessageBagInterface $message): ServiceInterface
     {
         if (is_string($route)) {
             $this->invokable = true;
@@ -51,7 +51,7 @@ class RouteDispatcher
         }
 
         list($className, $this->method) = $route;
-        return new $className($messageBag);
+        return new $className($message);
     }
 
     /**

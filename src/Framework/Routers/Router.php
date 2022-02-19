@@ -36,6 +36,11 @@ class Router implements RouterInterface
                 $messageBag
             );
         }
-        return $this->dispatcher->dispatch($this->routes[$messageBag->getProperty("type")], $messageBag);
+        return (new RouteDispatcher())
+            ->dispatch(
+                $this->routes[$messageBag->getProperty("type")],
+                $messageBag
+            );
+//        return $this->dispatcher->dispatch($this->routes[$messageBag->getProperty("type")], $messageBag);
     }
 }
