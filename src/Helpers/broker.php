@@ -79,6 +79,7 @@ if (!function_exists('remoteProcedureCall')) {
             function (AMQPMessage $message) use (&$response, $correlationId) {
                 // is our message?
                 if ($message->get_properties()["correlation_id"] != $correlationId) {
+                    var_dump("<<< not my id >>>");
                     $message->nack(true);
                 }
                 $response = new BrokerResponse(
