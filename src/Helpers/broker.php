@@ -94,12 +94,13 @@ if (!function_exists('remoteProcedureCall')) {
         // iterate consumer
         $until = time() + $timeout;
         do {
-            // wait a while - prevent CPU load
-            usleep(10000);
             $subscriber->iterate();
+            if (!is_null($messageHandler->getMessage())) {
+                break;
+            }
             // wait a while - prevent CPU load
-            usleep(40000);
-        } while ($until > time() && is_null($messageHandler->getMessage()));
+            usleep(50000);
+        } while ($until > time());
 
         return $messageHandler->getMessage();
     }
