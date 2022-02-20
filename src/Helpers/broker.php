@@ -72,16 +72,20 @@ if (!function_exists('remoteProcedureCall')) {
     ): ?BrokerResponse {
         // Start consuming
         $response = null;
+        $correlationId = $message->getProperty('correlation_id');
         $subscriber = subscribe(
             "",
             BrokerResponse::class,
-            function (AMQPMessage $message) use (&$response) {
+            function (AMQPMessage $message) use (&$response, $correlationId) {
+                // is our message?
+                if ($message->get_properties()["correlation_id"] != $correlationId) {
+                    $message->nack(true);
+                }
                 $response = new BrokerResponse(
                     $message->getBody(),
                     $message->get_properties(),
                     $message->getConsumerTag()
                 );
-                $message->ack();
             }
         );
 
@@ -100,6 +104,9 @@ if (!function_exists('remoteProcedureCall')) {
             // wait a while - prevent CPU load
             usleep(40000);
         } while ($until > time() && is_null($response));
+
+        // close subscriber channel
+        $subscriber->closeChannel();
 
         return $response;
     }

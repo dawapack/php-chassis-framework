@@ -13,6 +13,7 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Wire\AMQPTable;
+use function Chassis\Helpers\env;
 
 abstract class AbstractStreamer implements StreamerInterface
 {
@@ -130,26 +131,21 @@ abstract class AbstractStreamer implements StreamerInterface
         }
     }
 
-    protected function anonymousQueueDeclare(): array
+    protected function rpcCallbackQueueDeclare(): void
     {
-        // get a new channel
         $channel = $this->getChannel();
-
         // declare an anonymous queue & set QOS
         list($queueName) = $channel->queue_declare(
-            '',
+            env("BROKER_RPC_CALLBACK_QUEUE_NAME", "GeneralActiveRPC.Q.Responses"),
             false,
             false,
-            true,
-            true
+            false,
+            false
         );
         $channel->basic_qos(0, 1, false);
+        $channel->close();
 
-        return [
-            'name' => $queueName,
-            'channel' => $channel,
-            'consumerTag' => '',
-        ];
+        $this->application->add("activeRpcResponsesQueueName", $queueName);
     }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void

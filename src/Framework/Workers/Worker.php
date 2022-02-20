@@ -69,7 +69,7 @@ class Worker implements WorkerInterface
 
         // Close subscriber streamer channel
         if (isset($this->subscriberStreamer)) {
-            $this->subscriberStreamer->closeChannels();
+            $this->subscriberStreamer->closeChannel();
         }
     }
 
