@@ -101,19 +101,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     public function consume(?Closure $callback = null): SubscriberStreamer
     {
         if (empty($this->getChannelName())) {
-            if ($this->application->has("rpcCallbackQueue")) {
-                // setup queue name & streamer channel from container
-                $rpcCallbackQueue = $this->application->get("rpcCallbackQueue");
-                $this->queueName = $rpcCallbackQueue["name"];
-                $this->streamChannel = $rpcCallbackQueue["channel"];
-                // anonymous rpc queue already created
-                // basic consume at this moment is already started
-                return $this;
-            }
-            // consume from an anonymous rpc queue
-            $arguments = $this->fromAnonymousExclusiveCallbackQueue($callback);
-            $this->streamChannel->basic_consume(...$arguments);
-            return $this;
+            return $this->useAnonymousExclusiveCallbackQueue($callback);
         }
         // create new channel
         $this->streamChannel = $this->getChannel();
@@ -257,28 +245,55 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     /**
      * @param Closure $callback
      *
-     * @return array
+     * @return SubscriberStreamer
      */
-    private function fromAnonymousExclusiveCallbackQueue(Closure $callback): array
+    private function useAnonymousExclusiveCallbackQueue(Closure $callback): SubscriberStreamer
     {
         if (!$this->application->has("rpcCallbackQueue")) {
-            // create an anonymous temporary queue & save into container
-            $this->anonymousQueueDeclare();
+            // create an anonymous temporary queue
+            $rpcCallbackQueue = $this->anonymousQueueDeclare();
+            $rpcCallbackQueue["consumerTag"] = $this->basicConsume(
+                $rpcCallbackQueue["channel"],
+                $rpcCallbackQueue["name"],
+                $rpcCallbackQueue["consumerTag"],
+                $callback
+            );
+            $this->application->add("rpcCallbackQueue", $rpcCallbackQueue);
+            $this->queueName = $rpcCallbackQueue["name"];
+            $this->streamChannel = $rpcCallbackQueue["channel"];
+
+            return $this;
         }
         $rpcCallbackQueue = $this->application->get("rpcCallbackQueue");
         $this->queueName = $rpcCallbackQueue["name"];
         $this->streamChannel = $rpcCallbackQueue["channel"];
 
-        return array_values([
-            'queue' => $this->queueName,
-            'consumer_tag' => '',
-            'no_local' => false,
-            'no_ack' => false,
-            'exclusive' => true,
-            'nowait' => false,
-            'callback' => $callback,
-            'ticket' => null,
-            'arguments' => [],
-        ]);
+        $this->basicConsume(
+            $rpcCallbackQueue["channel"],
+            $rpcCallbackQueue["name"],
+            $rpcCallbackQueue["consumerTag"],
+            $callback
+        );
+
+        return $this;
+    }
+
+    private function basicConsume(
+        AMQPChannel $channel,
+        string $queueName,
+        string $consumerTag,
+        Closure $callback
+    ): string {
+        return $channel->basic_consume(
+            $queueName,
+            $consumerTag,
+            false,
+            false,
+            true,
+            false,
+            $callback,
+            null,
+            []
+        );
     }
 }

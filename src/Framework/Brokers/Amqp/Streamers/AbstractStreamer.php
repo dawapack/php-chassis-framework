@@ -130,23 +130,20 @@ abstract class AbstractStreamer implements StreamerInterface
         }
     }
 
-    protected function anonymousQueueDeclare(): void
+    protected function anonymousQueueDeclare(): array
     {
         // get a new channel
         $channel = $this->getChannel();
 
         // declare an anonymous queue & set QOS
         list($queueName) = $channel->queue_declare('', false, false, true, true);
-        $channel->basic_qos(0,1, false);
+        $channel->basic_qos(0, 1, false);
 
-        // add anonymous queue properties to container in order to be used by this worker
-        $this->application->add(
-            "rpcCallbackQueue",
-            [
-                "name" => $queueName,
-                "channel" => $channel
-            ]
-        );
+        return [
+            'name' => $queueName,
+            'channel' => $channel,
+            'consumerTag' => '',
+        ];
     }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void
