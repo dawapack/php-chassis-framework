@@ -11,7 +11,7 @@ class InfrastructureStreamer extends AbstractStreamer
      *
      * @return int
      */
-    public function brokerChannelsSetup(bool $declareBindings = true, bool $declareAnonymousQueues = true): int
+    public function brokerChannelsSetup(bool $declareBindings = true): int
     {
         $channels = $this->contractsManager->getChannels();
         foreach ($channels as $channel) {

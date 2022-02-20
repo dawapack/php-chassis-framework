@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
+use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\Configurations\DataTransferObject\BrokerChannel;
 use Chassis\Framework\Brokers\Amqp\Configurations\DataTransferObject\ChannelBindings;
 use Chassis\Framework\Brokers\Amqp\Configurations\DataTransferObject\OperationBindings;
@@ -12,9 +13,6 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Wire\AMQPTable;
-use Psr\Log\LoggerInterface;
-
-use function Chassis\Helpers\app;
 
 abstract class AbstractStreamer implements StreamerInterface
 {
@@ -22,9 +20,9 @@ abstract class AbstractStreamer implements StreamerInterface
     public const PUBLISH_OPERATION = 'publish';
     protected const LOGGER_COMPONENT_PREFIX = "abstract_streamer_";
 
+    protected Application $application;
     protected AMQPStreamConnection $streamerConnection;
     protected ContractsManager $contractsManager;
-    protected LoggerInterface $logger;
     protected array $exchangeDeclareMapper = [
         'name' => null,
         'type' => null,
@@ -58,21 +56,17 @@ abstract class AbstractStreamer implements StreamerInterface
     protected int $heartbeatLastActivity;
 
     /**
-     * AbstractStreamer constructor.
+     * @param Application $application
      *
-     * @param AMQPStreamConnection $streamerConnection
-     * @param ContractsManager $contractsManager
-     * @param LoggerInterface $logger
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
-    public function __construct(
-        AMQPStreamConnection $streamerConnection,
-        ContractsManager $contractsManager,
-        LoggerInterface $logger
-    ) {
+    public function __construct(Application $application)
+    {
+        $this->application = $application;
+        $this->contractsManager = $this->application->get(ContractsManager::class);
+        $this->streamerConnection = $this->application->get('brokerStreamConnection');
         $this->heartbeatLastActivity = time();
-        $this->streamerConnection = $streamerConnection;
-        $this->contractsManager = $contractsManager;
-        $this->logger = $logger;
         $this->transformDeclareMapperArguments();
     }
 
@@ -136,11 +130,24 @@ abstract class AbstractStreamer implements StreamerInterface
         }
     }
 
-//    protected function anonymousChannelDeclare(string $queueName): AMQPChannel
-//    {
-//        $channels = app("threadConfiguration");
-//        $channel = $this->getChannel();
-//    }
+    protected function anonymousQueueDeclare(): void
+    {
+        // get a new channel
+        $channel = $this->getChannel();
+
+        // declare an anonymous queue & set QOS
+        list($queueName) = $channel->queue_declare('', false, false, true, true);
+        $channel->basic_qos(0,1, false);
+
+        // add anonymous queue properties to container in order to be used by this worker
+        $this->application->add(
+            "rpcCallbackQueue",
+            [
+                "name" => $queueName,
+                "channelId" => $channel->getChannelId()
+            ]
+        );
+    }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void
     {

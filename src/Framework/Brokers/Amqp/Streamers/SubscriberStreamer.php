@@ -13,8 +13,6 @@ use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
 
-use function Chassis\Helpers\app;
-
 class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerInterface
 {
     protected const LOGGER_COMPONENT_PREFIX = "subscriber_streamer_";
@@ -102,9 +100,21 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     public function consume(?Closure $callback = null): SubscriberStreamer
     {
+        if (empty($this->getChannelName())) {
+            // consume from an anonymous rpc queue
+            $arguments = $this->fromAnonymousExclusiveCallbackQueue($callback);
+            $this->streamChannel = $this->getChannel(
+                $this->application->get("rpcCallbackQueue")["channelId"]
+            );
+            $this->streamChannel->basic_consume(...$arguments);
+            return $this;
+        }
+        // create new channel
         $this->streamChannel = $this->getChannel();
+        // set QOS
         $this->setStreamChannelQOS();
-        $this->streamChannel->basic_consume(...$this->toFunctionArguments($callback));
+        // consume
+        $this->streamChannel->basic_consume(...$this->fromChannelBindings($callback));
 
         return $this;
     }
@@ -126,11 +136,17 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     /**
      * @return void
      */
-    public function closeChannel(): void
+    public function closeChannels(): void
     {
         if ($this->streamChannel->is_open()) {
             $this->streamChannel->close();
         }
+        if ($this->application->has("rpcCallbackQueue")) {
+            $channel = $this->application->get("rpcCallbackQueue");
+            $rpcStreamerChannel = $this->getChannel($channel["channelId"]);
+            $rpcStreamerChannel->is_open() && $rpcStreamerChannel->close();
+        }
+
     }
 
     /**
@@ -166,7 +182,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
                 );
 
                 /** @var Router $router */
-                $router = app(RouterInterface::class);
+                $router = $this->application->get(RouterInterface::class);
                 $router->route($messageBag);
 
                 // ack the message?
@@ -176,7 +192,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
 
                 return;
             } catch (Throwable $reason) {
-                app()->logger()->error(
+                $this->application->logger()->error(
                     $reason->getMessage(),
                     [
                         'component' => self::LOGGER_COMPONENT_PREFIX . 'handle_data_exception',
@@ -221,16 +237,11 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    private function toFunctionArguments(?Closure $callback): array
+    private function fromChannelBindings(?Closure $callback): array
     {
         $channelName = $this->getChannelName() ?? "";
         if (is_null($callback)) {
             $callback = $this->getDefaultConsumerCallback();
-        }
-        if (empty($channelName)) {
-            return array_values(
-                $this->fromAnonymousExclusiveCallbackQueue($callback)
-            );
         }
 
         return array_values(
@@ -246,16 +257,13 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     private function fromAnonymousExclusiveCallbackQueue(Closure $callback): array
     {
-        // declare anonymous temporary queue
-        list($this->queueName) = $this->streamChannel->queue_declare(
-            '',
-            false,
-            false,
-            true,
-            true
-        );
+        if (!$this->application->has("rpcCallbackQueue")) {
+            // create an anonymous temporary queue & save into container
+            $this->anonymousQueueDeclare();
+        }
+        $this->queueName = $this->application->get("rpcCallbackQueue")["name"];
 
-        return [
+        return array_values([
             'queue' => $this->queueName,
             'consumer_tag' => '',
             'no_local' => false,
@@ -265,6 +273,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             'callback' => $callback,
             'ticket' => null,
             'arguments' => [],
-        ];
+        ]);
     }
 }

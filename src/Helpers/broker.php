@@ -101,9 +101,6 @@ if (!function_exists('remoteProcedureCall')) {
             usleep(49000);
         } while ($until > time() && is_null($response));
 
-        // close the channel - mandatory
-        $subscriber->closeChannel();
-
         return $response;
     }
 }

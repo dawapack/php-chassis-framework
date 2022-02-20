@@ -233,17 +233,9 @@ class Application extends Container implements ArrayAccess
             );
         })->addArgument($this);
         $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
-            ->addArguments([
-                $this->get('brokerStreamConnection'),
-                ContractsManagerInterface::class,
-                LoggerInterface::class
-            ])->setShared(false);
+            ->addArgument($this)->setShared(false);
         $this->add(PublisherStreamerInterface::class, PublisherStreamer::class)
-            ->addArguments([
-                $this->get('brokerStreamConnection'),
-                ContractsManagerInterface::class,
-                LoggerInterface::class
-            ])->setShared(false);
+            ->addArgument($this)->setShared(false);
     }
 
     /**

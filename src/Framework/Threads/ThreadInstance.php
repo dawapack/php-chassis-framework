@@ -100,7 +100,7 @@ class ThreadInstance implements ThreadInstanceInterface
         }
 
         // Create future
-        $this->future = $this->createFuture();
+        $this->future = $this->createFuture($threadId);
         if (is_null($this->future)) {
             $this->workerChannel->close();
             $this->threadChannel->close();
@@ -136,7 +136,7 @@ class ThreadInstance implements ThreadInstanceInterface
     /**
      * @return Future|null
      */
-    private function createFuture(): ?Future
+    private function createFuture(string $threadId): ?Future
     {
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
@@ -145,6 +145,7 @@ class ThreadInstance implements ThreadInstanceInterface
             return (new Runtime($basePath . "/vendor/autoload.php"))->run(
                 static function (
                     string $basePath,
+                    string $threadId,
                     array $threadConfiguration,
                     Channel $workerChannel,
                     Channel $threadChannel,
@@ -170,10 +171,11 @@ class ThreadInstance implements ThreadInstanceInterface
 
                     // Add aliases, config, ...
                     $app->add('threadConfiguration', $threadConfiguration);
+                    $app->add('threadId', $threadId);
                     $app->withConfig("threads");
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([ChannelsInterface::class, LoggerInterface::class]);
+                        ->addArguments([$app, ChannelsInterface::class]);
                     $app->add(RouterInterface::class, $router);
 
                     // Start processing jobs
@@ -181,6 +183,7 @@ class ThreadInstance implements ThreadInstanceInterface
                 },
                 [
                     $basePath,
+                    $threadId,
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
                     $this->threadChannel,

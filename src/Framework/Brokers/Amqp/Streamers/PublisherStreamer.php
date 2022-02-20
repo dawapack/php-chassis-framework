@@ -78,7 +78,7 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
             // wait for acknowledgements - ack or nack
             $this->streamerChannel->wait_for_pending_acks($publishAcknowledgeTimeout);
         } catch (Throwable $reason) {
-            $this->logger->error(
+            $this->application->logger()->error(
                 $reason->getMessage(),
                 [
                     'component' => self::LOGGER_COMPONENT_PREFIX . "publish",
@@ -87,7 +87,7 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
             );
             throw $reason;
         }
-        // close the channel
+        // close channel
         if (isset($this->streamerChannel) && $this->streamerChannel->is_open()) {
             $this->streamerChannel->close();
         }

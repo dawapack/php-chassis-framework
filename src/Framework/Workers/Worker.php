@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Workers;
 
-use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfigurationInterface;
-use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManager;
-use Chassis\Framework\Brokers\Amqp\Contracts\ContractsValidator;
+use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
-use Chassis\Framework\Routers\Router;
-use Chassis\Framework\Routers\RouterInterface;
 use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
-use Psr\Log\LoggerInterface;
 use Throwable;
 
-use function Chassis\Helpers\app;
 use function Chassis\Helpers\subscribe;
 
 class Worker implements WorkerInterface
@@ -26,20 +20,20 @@ class Worker implements WorkerInterface
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const LOOP_EACH_MS = 50;
 
-    private SubscriberStreamer $subscriberStreamer;
+    private Application $application;
     private ChannelsInterface $channels;
-    private LoggerInterface $logger;
+    private SubscriberStreamer $subscriberStreamer;
 
     /**
+     * @param Application $application
      * @param ChannelsInterface $channels
-     * @param LoggerInterface $logger
      */
     public function __construct(
-        ChannelsInterface $channels,
-        LoggerInterface $logger
+        Application $application,
+        ChannelsInterface $channels
     ) {
+        $this->application = $application;
         $this->channels = $channels;
-        $this->logger = $logger;
     }
 
     /**
@@ -60,7 +54,7 @@ class Worker implements WorkerInterface
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
-            $this->logger->error(
+            $this->application->logger()->error(
                 $reason->getMessage(),
                 [
                     'component' => self::LOGGER_COMPONENT_PREFIX . "exception",
@@ -75,7 +69,7 @@ class Worker implements WorkerInterface
 
         // Close subscriber streamer channel
         if (isset($this->subscriberStreamer)) {
-            $this->subscriberStreamer->closeChannel();
+            $this->subscriberStreamer->closeChannels();
         }
     }
 
@@ -110,18 +104,11 @@ class Worker implements WorkerInterface
      */
     protected function subscriberSetup(): void
     {
-        $threadConfiguration = app('threadConfiguration');
+        $threadConfiguration = $this->application->get('threadConfiguration');
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
                 // Broker channels setup
-                (new InfrastructureStreamer(
-                    app()->get('brokerStreamConnection'),
-                    new ContractsManager(
-                        app(BrokerConfigurationInterface::class),
-                        new ContractsValidator()
-                    ),
-                    $this->logger
-                ))->brokerChannelsSetup();
+                (new InfrastructureStreamer($this->application))->brokerChannelsSetup();
                 break;
             case "configuration":
                 // TODO: implement configuration listener - (centralized configuration server feature)
