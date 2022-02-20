@@ -103,9 +103,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         if (empty($this->getChannelName())) {
             // consume from an anonymous rpc queue
             $arguments = $this->fromAnonymousExclusiveCallbackQueue($callback);
-            $this->streamChannel = $this->getChannel(
-                $this->application->get("rpcCallbackQueue")["channelId"]
-            );
+            $this->streamChannel = $this->application->get("rpcCallbackQueue")["channel"];
             $this->streamChannel->basic_consume(...$arguments);
             return $this;
         }
@@ -142,11 +140,9 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             $this->streamChannel->close();
         }
         if ($this->application->has("rpcCallbackQueue")) {
-            $channel = $this->application->get("rpcCallbackQueue");
-            $rpcStreamerChannel = $this->getChannel($channel["channelId"]);
-            $rpcStreamerChannel->is_open() && $rpcStreamerChannel->close();
+            $channel = $this->application->get("rpcCallbackQueue")["channel"];
+            $channel->is_open() && $channel->close();
         }
-
     }
 
     /**

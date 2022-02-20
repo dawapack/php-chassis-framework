@@ -136,7 +136,7 @@ abstract class AbstractStreamer implements StreamerInterface
         $channel = $this->getChannel();
 
         // declare an anonymous queue & set QOS
-        list($queueName) = $channel->queue_declare('', false, false, false, true);
+        list($queueName) = $channel->queue_declare('', false, false, true, true);
         $channel->basic_qos(0,1, false);
 
         // add anonymous queue properties to container in order to be used by this worker
@@ -144,7 +144,7 @@ abstract class AbstractStreamer implements StreamerInterface
             "rpcCallbackQueue",
             [
                 "name" => $queueName,
-                "channelId" => $channel->getChannelId()
+                "channel" => $channel
             ]
         );
     }
