@@ -103,7 +103,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         if (empty($this->getChannelName())) {
             if ($this->application->has("rpcCallbackQueue")) {
                 // setup queue name & streamer channel from container
-                $rpcCallbackQueue = $this->application->get("rpcCallbackQueue")["name"];
+                $rpcCallbackQueue = $this->application->get("rpcCallbackQueue");
                 $this->queueName = $rpcCallbackQueue["name"];
                 $this->streamChannel = $rpcCallbackQueue["channel"];
                 // anonymous rpc queue already created
