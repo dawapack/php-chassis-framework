@@ -142,7 +142,7 @@ abstract class AbstractStreamer implements StreamerInterface
             false,
             false
         );
-        $channel->basic_qos(0, 1, false);
+        $channel->basic_qos(0, 10, false);
         $channel->close();
 
         $this->application->add("activeRpcResponsesQueueName", $queueName);
