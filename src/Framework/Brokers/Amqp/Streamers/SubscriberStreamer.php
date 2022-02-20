@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
+use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
 use Chassis\Framework\Routers\Router;
 use Chassis\Framework\Routers\RouterInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
@@ -99,7 +100,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     /**
      * @inheritdoc
      */
-    public function consume(?Closure $callback = null): SubscriberStreamer
+    public function consume($callback = null): SubscriberStreamer
     {
         if (empty($this->getChannelName())) {
             // active RPC
@@ -136,6 +137,12 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     {
         if ($this->streamChannel->is_open()) {
             $this->streamChannel->close();
+        }
+        if ($this->application->has("activeRpcResponsesQueue")) {
+            $activeRpc = $this->application->get("activeRpcResponsesQueue");
+            if ($activeRpc["channel"]->is_open()) {
+                $activeRpc["channel"]->close();
+            }
         }
     }
 
@@ -221,13 +228,13 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     }
 
     /**
-     * @param Closure|null $callback
+     * @param Closure|MessageHandlerInterface|null $callback
      *
      * @return array
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    private function fromChannelBindings(?Closure $callback): array
+    private function fromChannelBindings($callback): array
     {
         $channelName = $this->getChannelName() ?? "";
         if (is_null($callback)) {
@@ -241,18 +248,20 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     }
 
     /**
-     * @param Closure $callback
+     * @param Closure|MessageHandlerInterface $callback
      *
      * @return SubscriberStreamer
      */
-    private function useRpcCallbackQueue(Closure $callback): SubscriberStreamer
+    private function useRpcCallbackQueue($callback): SubscriberStreamer
     {
-        if (!$this->application->has("activeRpcResponsesQueueName")) {
-            // create the queue
-            $this->rpcCallbackQueueDeclare();
+        if ($this->application->has("activeRpcResponsesQueue")) {
+            return $this;
         }
-        $this->queueName = $this->application->get("activeRpcResponsesQueueName");
-        $this->streamChannel = $this->getChannel();
+        // create the queue
+        $activeRpcResponsesQueue = $this->rpcCallbackQueueDeclare();
+        $this->application->add("activeRpcResponsesQueue", $activeRpcResponsesQueue);
+        $this->queueName = $activeRpcResponsesQueue["name"];
+        $this->streamChannel = $activeRpcResponsesQueue["channel"];
 
         $this->streamChannel->basic_consume(
             $this->queueName,

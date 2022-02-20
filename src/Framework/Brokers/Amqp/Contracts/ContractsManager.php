@@ -77,7 +77,7 @@ class ContractsManager implements ContractsManagerInterface
     /**
      * @inheritDoc
      */
-    public function toBasicConsumeFunctionArguments(string $channelName, Closure $callback): array
+    public function toBasicConsumeFunctionArguments(string $channelName, $callback): array
     {
         if (is_null($this->getChannel($channelName))) {
             throw new StreamerChannelNameNotFoundException("channel name '$channelName' not found");

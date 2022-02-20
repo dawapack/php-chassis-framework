@@ -131,21 +131,23 @@ abstract class AbstractStreamer implements StreamerInterface
         }
     }
 
-    protected function rpcCallbackQueueDeclare(): void
+    protected function rpcCallbackQueueDeclare(): array
     {
         $channel = $this->getChannel();
         // declare an anonymous queue & set QOS
         list($queueName) = $channel->queue_declare(
-            env("BROKER_RPC_CALLBACK_QUEUE_NAME", "GeneralActiveRPC.Q.Responses"),
+            "",
             false,
             false,
-            false,
-            false
+            true,
+            true
         );
-        $channel->basic_qos(0, 10, false);
-        $channel->close();
+        $channel->basic_qos(0, 1, false);
 
-        $this->application->add("activeRpcResponsesQueueName", $queueName);
+        return [
+            'name' => $queueName,
+            'channel' => $channel,
+        ];
     }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void

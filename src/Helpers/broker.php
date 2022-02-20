@@ -4,26 +4,32 @@ declare(strict_types=1);
 
 namespace Chassis\Helpers;
 
-use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
-use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
-use Chassis\Framework\Brokers\Exceptions\BrokerOperationTimeoutException;
-use Closure;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
+use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandler;
 use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
+use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
-use PhpAmqpLib\Message\AMQPMessage;
+use Chassis\Framework\Brokers\Exceptions\StreamerChannelClosedException;
+use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
+use Closure;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 if (!function_exists('publish')) {
     /**
      * @param MessageBagInterface $messageBag
      * @param string|null $channelName
+     * @param int $publishAcknowledgeTimeout
      *
      * @return void
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws StreamerChannelClosedException
      */
     function publish(
         MessageBagInterface $messageBag,
@@ -43,6 +49,10 @@ if (!function_exists('subscribe')) {
      * @param Closure|MessageHandlerInterface|null $messageHandler
      *
      * @return SubscriberStreamer
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws StreamerChannelNameNotFoundException
      */
     function subscribe(
         string $channelName,
@@ -63,36 +73,19 @@ if (!function_exists('remoteProcedureCall')) {
      * @param int $timeout
      *
      * @return BrokerResponse|null
-     * @throws \Chassis\Framework\Brokers\Exceptions\MessageBagFormatException
-     * @throws \JsonException
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws StreamerChannelClosedException
+     * @throws StreamerChannelNameNotFoundException
      */
     function remoteProcedureCall(
         BrokerRequest $message,
         int $timeout = 30
     ): ?BrokerResponse {
-        // Start consuming
-        $response = null;
-        $correlationId = $message->getProperty('correlation_id');
-        $subscriber = subscribe(
-            "",
-            BrokerResponse::class,
-            function (AMQPMessage $message) use (&$response, $correlationId) {
-                // is our message?
-                if ($message->get_properties()["correlation_id"] != $correlationId) {
-                    var_dump("<<< not my id >>>");
-                    $message->nack(true);
-                    return;
-                }
-                $response = new BrokerResponse(
-                    $message->getBody(),
-                    $message->get_properties(),
-                    $message->getConsumerTag()
-                );
-                $message->ack();
-            }
-        );
-
-        // update reply to message property
+        /** @var MessageHandler $messageHandler */
+        $messageHandler = (app(MessageHandlerInterface::class))->clear();
+        $subscriber = subscribe("", BrokerResponse::class, $messageHandler);
         $message->setReplyTo($subscriber->getQueueName());
 
         // publish
@@ -106,11 +99,8 @@ if (!function_exists('remoteProcedureCall')) {
             $subscriber->iterate();
             // wait a while - prevent CPU load
             usleep(40000);
-        } while ($until > time() && is_null($response));
+        } while ($until > time() && is_null($messageHandler->getMessage()));
 
-        // close subscriber channel
-        $subscriber->closeChannel();
-
-        return $response;
+        return $messageHandler->getMessage();
     }
 }

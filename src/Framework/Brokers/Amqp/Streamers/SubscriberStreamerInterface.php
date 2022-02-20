@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
+use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Closure;
 
@@ -60,13 +61,13 @@ interface SubscriberStreamerInterface
     public function isQosPerConsumer(): bool;
 
     /**
-     * @param Closure|null $callback
+     * @param Closure|MessageHandlerInterface|null $callback
      *
      * @return $this
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    public function consume(?Closure $callback = null): self;
+    public function consume($callback = null): self;
 
     /**
      * @return void
