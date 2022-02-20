@@ -136,7 +136,13 @@ abstract class AbstractStreamer implements StreamerInterface
         $channel = $this->getChannel();
 
         // declare an anonymous queue & set QOS
-        list($queueName) = $channel->queue_declare('', false, false, true, true);
+        list($queueName) = $channel->queue_declare(
+            '',
+            false,
+            false,
+            true,
+            true
+        );
         $channel->basic_qos(0, 1, false);
 
         return [

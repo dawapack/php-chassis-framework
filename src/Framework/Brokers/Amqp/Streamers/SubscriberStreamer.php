@@ -101,6 +101,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     public function consume(?Closure $callback = null): SubscriberStreamer
     {
         if (empty($this->getChannelName())) {
+            // active RPC
             return $this->useAnonymousExclusiveCallbackQueue($callback);
         }
         // create new channel
@@ -284,6 +285,10 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         string $consumerTag,
         Closure $callback
     ): string {
+        if (!empty($consumerTag)) {
+            // cancel old consumer
+            $channel->basic_cancel($consumerTag);
+        }
         return $channel->basic_consume(
             $queueName,
             $consumerTag,
