@@ -101,6 +101,11 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     public function consume(?Closure $callback = null): SubscriberStreamer
     {
         if (empty($this->getChannelName())) {
+            if ($this->application->has("rpcCallbackQueue")) {
+                // anonymous rpc queue already created
+                // basic consume is already started
+                return $this;
+            }
             // consume from an anonymous rpc queue
             $arguments = $this->fromAnonymousExclusiveCallbackQueue($callback);
             $this->streamChannel = $this->application->get("rpcCallbackQueue")["channel"];
