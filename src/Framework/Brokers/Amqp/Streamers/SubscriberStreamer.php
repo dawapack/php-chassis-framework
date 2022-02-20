@@ -258,7 +258,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             $this->queueName,
             '',
             false,
-            true,
+            false,
             false,
             false,
             $callback,
