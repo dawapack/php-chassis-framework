@@ -95,10 +95,10 @@ if (!function_exists('remoteProcedureCall')) {
         $until = time() + $timeout;
         do {
             // wait a while - prevent CPU load
-            usleep(1000);
+            usleep(10000);
             $subscriber->iterate();
             // wait a while - prevent CPU load
-            usleep(49000);
+            usleep(40000);
         } while ($until > time() && is_null($response));
 
         return $response;

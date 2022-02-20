@@ -102,6 +102,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     {
         if (empty($this->getChannelName())) {
             if ($this->application->has("rpcCallbackQueue")) {
+                $this->queueName = $this->application->get("rpcCallbackQueue")["name"];
                 // anonymous rpc queue already created
                 // basic consume is already started
                 return $this;
