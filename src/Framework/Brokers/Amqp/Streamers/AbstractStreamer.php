@@ -10,11 +10,11 @@ use Chassis\Framework\Brokers\Amqp\Configurations\DataTransferObject\OperationBi
 use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Wire\AMQPTable;
 use Psr\Log\LoggerInterface;
-use Throwable;
+
+use function Chassis\Helpers\app;
 
 abstract class AbstractStreamer implements StreamerInterface
 {
@@ -135,6 +135,12 @@ abstract class AbstractStreamer implements StreamerInterface
             $this->heartbeatLastActivity = time();
         }
     }
+
+//    protected function anonymousChannelDeclare(string $queueName): AMQPChannel
+//    {
+//        $channels = app("threadConfiguration");
+//        $channel = $this->getChannel();
+//    }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void
     {
