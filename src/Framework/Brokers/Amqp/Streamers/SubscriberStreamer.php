@@ -102,14 +102,16 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     {
         if (empty($this->getChannelName())) {
             if ($this->application->has("rpcCallbackQueue")) {
-                $this->queueName = $this->application->get("rpcCallbackQueue")["name"];
+                // setup queue name & streamer channel from container
+                $rpcCallbackQueue = $this->application->get("rpcCallbackQueue")["name"];
+                $this->queueName = $rpcCallbackQueue["name"];
+                $this->streamChannel = $rpcCallbackQueue["channel"];
                 // anonymous rpc queue already created
-                // basic consume is already started
+                // basic consume at this moment is already started
                 return $this;
             }
             // consume from an anonymous rpc queue
             $arguments = $this->fromAnonymousExclusiveCallbackQueue($callback);
-            $this->streamChannel = $this->application->get("rpcCallbackQueue")["channel"];
             $this->streamChannel->basic_consume(...$arguments);
             return $this;
         }
@@ -263,7 +265,9 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             // create an anonymous temporary queue & save into container
             $this->anonymousQueueDeclare();
         }
-        $this->queueName = $this->application->get("rpcCallbackQueue")["name"];
+        $rpcCallbackQueue = $this->application->get("rpcCallbackQueue");
+        $this->queueName = $rpcCallbackQueue["name"];
+        $this->streamChannel = $rpcCallbackQueue["channel"];
 
         return array_values([
             'queue' => $this->queueName,
