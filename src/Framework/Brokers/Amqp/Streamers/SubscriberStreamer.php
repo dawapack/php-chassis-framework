@@ -255,6 +255,9 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     private function useRpcCallbackQueue($callback): SubscriberStreamer
     {
         if ($this->application->has("activeRpcResponsesQueue")) {
+            $activeRpc = $this->application->get("activeRpcResponsesQueue");
+            $this->queueName = $activeRpc["name"];
+            $this->streamChannel = $activeRpc["channel"];
             return $this;
         }
         // create the queue
