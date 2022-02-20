@@ -81,6 +81,7 @@ if (!function_exists('remoteProcedureCall')) {
                 if ($message->get_properties()["correlation_id"] != $correlationId) {
                     var_dump("<<< not my id >>>");
                     $message->nack(true);
+                    return;
                 }
                 $response = new BrokerResponse(
                     $message->getBody(),
