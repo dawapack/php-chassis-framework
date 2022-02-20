@@ -66,7 +66,7 @@ abstract class AbstractStreamer implements StreamerInterface
     {
         $this->application = $application;
         $this->contractsManager = $this->application->get(ContractsManager::class);
-        $this->streamerConnection = $this->application->get('brokerStreamConnection');
+        $this->streamerConnection = $this->application->getNew('brokerStreamConnection');
         $this->heartbeatLastActivity = time();
         $this->transformDeclareMapperArguments();
     }
