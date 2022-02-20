@@ -285,16 +285,12 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
         string $consumerTag,
         Closure $callback
     ): string {
-        if (!empty($consumerTag)) {
-            // cancel old consumer
-            $channel->basic_cancel($consumerTag);
-        }
         return $channel->basic_consume(
             $queueName,
             $consumerTag,
             false,
             false,
-            true,
+            false,
             false,
             $callback,
             null,
