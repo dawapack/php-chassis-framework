@@ -87,6 +87,7 @@ if (!function_exists('remoteProcedureCall')) {
                     $message->get_properties(),
                     $message->getConsumerTag()
                 );
+                $message->ack();
             }
         );
 
