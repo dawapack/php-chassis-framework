@@ -129,8 +129,8 @@ abstract class AbstractStreamer implements StreamerInterface
             return;
         }
 
-        $interval = ceil($heartbeat / 2);
-        if (time() > ($this->heartbeatLastActivity + $interval)) {
+        $lastHeartbeat = $this->heartbeatLastActivity + ceil($heartbeat / 2);
+        if (time() > $lastHeartbeat) {
             $this->streamerConnection->checkHeartBeat();
             $this->heartbeatLastActivity = time();
         }
@@ -172,6 +172,8 @@ abstract class AbstractStreamer implements StreamerInterface
             // will throw an exception if the exchange doesn't exist - passive = true
             $channel->exchange_declare(...array_values($functionArguments));
         } catch (AMQPProtocolChannelException $reason) {
+            // close previous channel
+            $channel->close();
             // force exchange declaration
             $functionArguments = array_merge(
                 $this->exchangeDeclareMapper,
@@ -208,6 +210,8 @@ abstract class AbstractStreamer implements StreamerInterface
             // will throw an exception if the queue doesn't exist - passive = true
             $channel->queue_declare(...array_values($functionArguments));
         } catch (AMQPProtocolChannelException $reason) {
+            // close previous channel
+            $channel->close();
             // force exchange declaration
             $functionArguments = array_merge(
                 $this->queueDeclareMapper,
