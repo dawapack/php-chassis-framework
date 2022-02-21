@@ -102,10 +102,6 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     public function consume($callback = null): SubscriberStreamer
     {
-        if (empty($this->getChannelName())) {
-            // active RPC
-            return $this->useRpcCallbackQueue($callback);
-        }
         // create new channel
         $this->streamChannel = $this->getChannel();
         // set QOS
@@ -245,39 +241,5 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
             $this->contractsManager
                 ->toBasicConsumeFunctionArguments($channelName, $callback)
         );
-    }
-
-    /**
-     * @param Closure|MessageHandlerInterface $callback
-     *
-     * @return SubscriberStreamer
-     */
-    private function useRpcCallbackQueue($callback): SubscriberStreamer
-    {
-        if ($this->application->has("activeRpcResponsesQueue")) {
-            $activeRpc = $this->application->get("activeRpcResponsesQueue");
-            $this->queueName = $activeRpc["name"];
-            $this->streamChannel = $activeRpc["channel"];
-            return $this;
-        }
-        // create the queue
-        $activeRpcResponsesQueue = $this->rpcCallbackQueueDeclare();
-        $this->application->add("activeRpcResponsesQueue", $activeRpcResponsesQueue);
-        $this->queueName = $activeRpcResponsesQueue["name"];
-        $this->streamChannel = $activeRpcResponsesQueue["channel"];
-
-        $this->streamChannel->basic_consume(
-            $this->queueName,
-            '',
-            false,
-            false,
-            false,
-            false,
-            $callback,
-            null,
-            []
-        );
-
-        return $this;
     }
 }

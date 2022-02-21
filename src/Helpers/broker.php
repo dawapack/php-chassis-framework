@@ -6,16 +6,19 @@ namespace Chassis\Helpers;
 
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
-use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandler;
 use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
+use Chassis\Framework\Brokers\Exceptions\MessageBagFormatException;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelClosedException;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Closure;
+use JsonException;
+use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
@@ -77,31 +80,31 @@ if (!function_exists('remoteProcedureCall')) {
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws StreamerChannelClosedException
-     * @throws StreamerChannelNameNotFoundException
+     * @throws MessageBagFormatException
+     * @throws JsonException
      */
     function remoteProcedureCall(
         BrokerRequest $message,
         int $timeout = 30
     ): ?BrokerResponse {
-        /** @var MessageHandler $messageHandler */
-        $messageHandler = (app(MessageHandlerInterface::class))->clear();
-        $subscriber = subscribe("", BrokerResponse::class, $messageHandler);
-        $message->setReplyTo($subscriber->getQueueName());
+        $activeRpc = (new InfrastructureStreamer(app()))->brokerActiveRpcSetup();
+        $message->setReplyTo($activeRpc["name"]);
 
-        // publish
+        // publish the message
         publish($message);
 
-        // iterate consumer
-        $until = time() + $timeout;
-        do {
-            $subscriber->iterate();
-            if (!is_null($messageHandler->getMessage())) {
-                break;
-            }
-            // wait a while - prevent CPU load
-            usleep(50000);
-        } while ($until > time());
+        // basic get message - wait a new message or timeout
+        $message = $activeRpc["channel"]->basic_get($activeRpc["name"]);
+        if ($message instanceof AMQPMessage) {
+            // ack the message
+            $message->ack();
+            return new BrokerResponse(
+                $message->getBody(),
+                $message->get_properties(),
+                $message->getConsumerTag()
+            );
+        }
 
-        return $messageHandler->getMessage();
+        return null;
     }
 }
