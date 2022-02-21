@@ -10,6 +10,5 @@ class NullNackHandler implements AckNackHandlerInterface
 {
     public function handle(AMQPMessage $message): void
     {
-        var_dump("<<< Nack Handler triggered >>>");
     }
 }

@@ -44,11 +44,6 @@ class ThreadConfiguration extends DataTransferObject
     public int $maxJobs;
 
     /**
-     * @var bool
-     */
-    public bool $rpc_allowed;
-
-    /**
      * @var array
      */
     public array $channels;

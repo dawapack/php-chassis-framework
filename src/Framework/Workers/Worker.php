@@ -53,6 +53,9 @@ class Worker implements WorkerInterface
                 $this->loopWait($startAt);
             } while (true);
         } catch (Throwable $reason) {
+
+            var_dump([__METHOD__, $reason->getMessage()]);
+
             // log this error & request respawning
             $this->application->logger()->error(
                 $reason->getMessage(),

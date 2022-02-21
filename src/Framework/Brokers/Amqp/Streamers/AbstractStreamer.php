@@ -13,7 +13,6 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Wire\AMQPTable;
-use function Chassis\Helpers\env;
 
 abstract class AbstractStreamer implements StreamerInterface
 {
