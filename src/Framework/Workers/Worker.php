@@ -54,7 +54,11 @@ class Worker implements WorkerInterface
             } while (true);
         } catch (Throwable $reason) {
 
-            file_put_contents("/var/www/logs/debug.log", $reason->getMessage() . PHP_EOL, FILE_APPEND);
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                $reason->getMessage() . PHP_EOL . $reason->getTraceAsString() . PHP_EOL,
+                FILE_APPEND
+            );
 
             // log this error & request respawning
             $this->application->logger()->error(
