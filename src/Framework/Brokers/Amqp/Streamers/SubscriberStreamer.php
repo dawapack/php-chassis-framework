@@ -121,11 +121,11 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     public function iterate(): void
     {
-//        try {
-            $this->streamChannel->wait(null, true);
-//        } catch (AMQPTimeoutException $reason) {
-//            // Rise this exception on timeout - this is a normal behaviour
-//        }
+        try {
+            $this->streamChannel->wait(null, false,0.05);
+        } catch (AMQPTimeoutException $reason) {
+            // Rise this exception on timeout - this is a normal behaviour
+        }
         // check heartbeat
         $this->checkHeartbeat();
     }
