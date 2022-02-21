@@ -108,7 +108,7 @@ if (!function_exists('remoteProcedureCall')) {
             return new BrokerResponse(
                 $response->getBody(),
                 $response->get_properties(),
-                $response->getConsumerTag()
+                "no_tag"
             );
         }
 
