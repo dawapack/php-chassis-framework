@@ -131,7 +131,7 @@ abstract class AbstractStreamer implements StreamerInterface
         }
     }
 
-    protected function rpcCallbackQueueDeclare(): array
+    protected function rpcCallbackQueueDeclare(): string
     {
         $channel = $this->getChannel();
         // declare an anonymous queue & set QOS
@@ -143,11 +143,9 @@ abstract class AbstractStreamer implements StreamerInterface
             true
         );
         $channel->basic_qos(0, 1, false);
+        $channel->close();
 
-        return [
-            'name' => $queueName,
-            'channel' => $channel,
-        ];
+        return $queueName;
     }
 
     protected function channelDeclare(BrokerChannel $brokerChannel, bool $declareBindings): void

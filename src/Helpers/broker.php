@@ -18,9 +18,11 @@ use Chassis\Framework\Brokers\Exceptions\StreamerChannelClosedException;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Closure;
 use JsonException;
+use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Throwable;
 
 if (!function_exists('publish')) {
     /**
@@ -87,30 +89,49 @@ if (!function_exists('remoteProcedureCall')) {
         BrokerRequest $message,
         int $timeout = 30
     ): ?BrokerResponse {
-        $activeRpc = (new InfrastructureStreamer(app()))->brokerActiveRpcSetup();
-        $message->setReplyTo($activeRpc["name"]);
+        $application = app();
+
+        $queueName = (new InfrastructureStreamer($application))->brokerActiveRpcSetup();
+        $message->setReplyTo($queueName);
 
         // publish the message
         publish($message);
 
-        // basic get message - wait a new message or timeout
-        $until = time() + $timeout;
-        do {
-            $response = $activeRpc["channel"]->basic_get($activeRpc["name"]);
-            // wait a while - prevent CPU load
-            usleep(10000);
-        } while ($until > time() && is_null($response));
+        /** @var AMQPChannel $channel */
+        $channel = ($application->get("brokerStreamConnection"))->channel();
+        try {
+            // basic get message - wait a new message or timeout
+            $until = time() + $timeout;
+            do {
+                $response = $channel->basic_get($queueName);
+                // wait a while - prevent CPU load
+                usleep(10000);
+            } while ($until > time() && is_null($response));
 
-        // handle response
-        if ($response instanceof AMQPMessage) {
-            // ack the message
-            $response->ack();
-            return new BrokerResponse(
-                $response->getBody(),
-                $response->get_properties(),
-                "no_tag"
+            // handle response
+            if ($response instanceof AMQPMessage) {
+                // ack the message
+                $response->ack();
+                // close channel
+                $channel->close();
+                // return message
+                return new BrokerResponse(
+                    $response->getBody(),
+                    $response->get_properties(),
+                    "no_tag_for_basic_get"
+                );
+            }
+        } catch (Throwable $reason) {
+            $application->logger()->error(
+                $reason->getMessage(),
+                [
+                    "component" => "remote_procedure_call_function_exception",
+                    "error" => $reason
+                ]
             );
         }
+        // no message retrieved || exception thrown - close the channel
+        $channel->close();
 
         return null;
     }
