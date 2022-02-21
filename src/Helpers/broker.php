@@ -94,14 +94,21 @@ if (!function_exists('remoteProcedureCall')) {
         publish($message);
 
         // basic get message - wait a new message or timeout
-        $message = $activeRpc["channel"]->basic_get($activeRpc["name"]);
-        if ($message instanceof AMQPMessage) {
+        $until = time() + $timeout;
+        do {
+            $response = $activeRpc["channel"]->basic_get($activeRpc["name"]);
+            // wait a while - prevent CPU load
+            usleep(10000);
+        } while ($until > time() && is_null($response));
+
+        // handle response
+        if ($response instanceof AMQPMessage) {
             // ack the message
-            $message->ack();
+            $response->ack();
             return new BrokerResponse(
-                $message->getBody(),
-                $message->get_properties(),
-                $message->getConsumerTag()
+                $response->getBody(),
+                $response->get_properties(),
+                $response->getConsumerTag()
             );
         }
 
