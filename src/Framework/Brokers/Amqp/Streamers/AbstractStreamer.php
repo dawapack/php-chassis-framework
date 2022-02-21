@@ -140,7 +140,7 @@ abstract class AbstractStreamer implements StreamerInterface
             false,
             false,
             true,
-            true
+            false
         );
         $channel->basic_qos(0, 1, false);
         $channel->close();
