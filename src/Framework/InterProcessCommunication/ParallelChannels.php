@@ -182,6 +182,12 @@ class ParallelChannels implements ChannelsInterface
             return true;
         }
 
+        file_put_contents(
+            "/var/www/logs/debug.log",
+            json_encode((array)$event) . PHP_EOL,
+            FILE_APPEND
+        );
+
         if (isset($event->value["headers"]["method"])) {
             $this->message = new IPCMessage($event->value);
             $this->events->addChannel($this->getListenedChannel());
