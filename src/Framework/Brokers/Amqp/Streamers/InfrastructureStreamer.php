@@ -26,7 +26,10 @@ class InfrastructureStreamer extends AbstractStreamer
             return $this->application->get("activeRpcResponsesQueue");
         }
         // create the queue
-        return $this->rpcCallbackQueueDeclare();
+        $queueName =  $this->rpcCallbackQueueDeclare();
+        $this->application->add("activeRpcResponsesQueue", $queueName);
+
+        return $queueName;
     }
     /**
      * @return int
