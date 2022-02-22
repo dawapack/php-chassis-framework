@@ -227,13 +227,11 @@ class Application extends Container implements ArrayAccess
         // container bindings
         $this->add(ContractsManagerInterface::class, ContractsManager::class)
             ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator()]);
-        $this->add('brokerStreamConnection', function ($app) {
+        $this->add('brokerStreamConnection', function ($contractsManager) {
             return new AMQPStreamConnection(
-                ...array_values(
-                    $app->get(ContractsManagerInterface::class)->toStreamConnectionFunctionArguments()
-                )
+                ...array_values($contractsManager->toStreamConnectionFunctionArguments())
             );
-        })->addArgument($this);
+        })->addArgument(ContractsManagerInterface::class);
         $this->add(MessageHandlerInterface::class, MessageHandler::class);
         $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
             ->addArgument($this)->setShared(false);

@@ -6,6 +6,6 @@ namespace Chassis\Framework\Brokers\Exceptions;
 
 use Exception;
 
-class StreamerChannelRpcNotAllowedException extends Exception
+class StreamerChannelIterateMaxRetryException extends Exception
 {
 }

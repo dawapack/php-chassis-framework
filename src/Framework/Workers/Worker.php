@@ -7,6 +7,7 @@ namespace Chassis\Framework\Workers;
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
+use Chassis\Framework\Brokers\Exceptions\StreamerChannelIterateMaxRetryException;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
@@ -19,10 +20,12 @@ class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const LOOP_EACH_MS = 50;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 5;
 
     private Application $application;
     private ChannelsInterface $channels;
     private SubscriberStreamer $subscriberStreamer;
+    private int $iterateRetry = 0;
 
     /**
      * @param Application $application
@@ -53,13 +56,6 @@ class Worker implements WorkerInterface
                 $this->loopWait($startAt);
             } while (true);
         } catch (Throwable $reason) {
-
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                $reason->getMessage() . PHP_EOL . $reason->getTraceAsString() . PHP_EOL,
-                FILE_APPEND
-            );
-
             // log this error & request respawning
             $this->application->logger()->error(
                 $reason->getMessage(),
@@ -86,9 +82,9 @@ class Worker implements WorkerInterface
     private function polling(): bool
     {
         // channel events pool
-        $polling = $this->channels->eventsPoll();
+        $this->channels->eventsPoll();
         if ($this->channels->isAbortRequested()) {
-            // send aborting message to main thread
+            // send aborting message to thread manager
             $this->channels->sendTo(
                 $this->channels->getThreadChannel(),
                 (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
@@ -97,11 +93,20 @@ class Worker implements WorkerInterface
         }
 
         // subscriber iterate
-        if (isset($this->subscriberStreamer)) {
-            $this->subscriberStreamer->iterate();
+        try {
+            if (isset($this->subscriberStreamer)) {
+                $this->subscriberStreamer->iterate();
+            }
+            $this->iterateRetry =0;
+        } catch (Throwable $reason) {
+            // retry pattern
+            $this->iterateRetry++;
+            if ($this->iterateRetry > self::SUBSCRIBER_ITERATE_MAX_RETRY) {
+                throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
+            }
         }
 
-        return $polling;
+        return true;
     }
 
     /**

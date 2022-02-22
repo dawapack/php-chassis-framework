@@ -39,9 +39,6 @@ class Kernel implements KernelInterface
             case "daemon":
                 ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
                 break;
-            case "cron":
-                // TODO: implement cron worker type
-                return;
         }
     }
 
@@ -64,14 +61,6 @@ class Kernel implements KernelInterface
         );
     }
 
-
-    /**
-     * @inheritDoc
-     */
-    public function app(): Application
-    {
-        return $this->app;
-    }
 
     /**
      * @inheritDoc

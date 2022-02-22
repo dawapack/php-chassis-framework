@@ -61,9 +61,9 @@ interface ChannelsInterface
     public function isRespawnRequested(): bool;
 
     /**
-     * @return bool
+     * @return void
      */
-    public function eventsPoll(): bool;
+    public function eventsPoll(): void;
 
     /**
      * @return void

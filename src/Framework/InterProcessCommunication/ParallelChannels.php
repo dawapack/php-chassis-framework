@@ -148,26 +148,25 @@ class ParallelChannels implements ChannelsInterface
     /**
      * @inheritdoc
      */
-    public function eventsPoll(): bool
+    public function eventsPoll(): void
     {
         try {
             $event = $this->events->poll();
-            if (!is_null($event)) {
-                return $this->handleEvent($event);
+            if (is_null($event)) {
+                return;
             }
+            $this->handleEvent($event);
         } catch (Timeout $reason) {
             // fault-tolerant - timeout is a normal behaviour
         }
-
-        return true;
     }
 
     /**
      * @param Event $event
      *
-     * @return bool
+     * @return void
      */
-    private function handleEvent(Event $event): bool
+    private function handleEvent(Event $event): void
     {
         // handle only read event types
         if ($event->type !== EventType::Read) {
@@ -179,22 +178,10 @@ class ParallelChannels implements ChannelsInterface
                     "event" => (array)$event
                 ]
             );
-            return true;
+            return;
         }
-
-        file_put_contents(
-            "/var/www/logs/debug.log",
-            json_encode((array)$event) . PHP_EOL,
-            FILE_APPEND
-        );
-
-        if (isset($event->value["headers"]["method"])) {
-            $this->message = new IPCMessage($event->value);
-            $this->events->addChannel($this->getListenedChannel());
-            return true;
-        }
-
-        return false;
+        $this->message = new IPCMessage($event->value);
+        $this->events->addChannel($this->getListenedChannel());
     }
 
     /**
