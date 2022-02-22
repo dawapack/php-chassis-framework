@@ -177,10 +177,10 @@ class Worker implements WorkerInterface
     {
         $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 1000));
 
-        var_dump(
-            $this->application->get('threadConfiguration')["channelName"] . " - "
-            . (microtime(true) - $startAt) . " - " . $loopWait
-        );
+//        var_dump(
+//            $this->application->get('threadConfiguration')["channelName"] . " - "
+//            . (microtime(true) - $startAt) . " - " . $loopWait
+//        );
 
         if ($loopWait > 0) {
             usleep(((int)$loopWait * 1000));
