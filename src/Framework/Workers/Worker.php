@@ -83,6 +83,12 @@ class Worker implements WorkerInterface
     {
         // channel events pool
         $this->channels->eventsPoll();
+
+        $message = $this->channels->getMessage();
+        if (!is_null($message)) {
+            var_dump("Worker polling message - " . json_encode($this->channels->getMessage()->toArray()));
+        }
+
         if ($this->channels->isAbortRequested()) {
             // send aborting message to thread manager
             $this->channels->sendTo(
@@ -96,9 +102,12 @@ class Worker implements WorkerInterface
         try {
             if (isset($this->subscriberStreamer)) {
                 $this->subscriberStreamer->iterate();
+                $this->iterateRetry =0;
             }
-            $this->iterateRetry =0;
         } catch (Throwable $reason) {
+
+            var_dump("Worker polling iterate exception - " . $reason->getMessage());
+
             // retry pattern
             $this->iterateRetry++;
             if ($this->iterateRetry > self::SUBSCRIBER_ITERATE_MAX_RETRY) {
