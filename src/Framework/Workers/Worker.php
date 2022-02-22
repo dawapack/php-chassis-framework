@@ -132,7 +132,7 @@ class Worker implements WorkerInterface
 
             // retry pattern
             $this->iterateRetry++;
-            if ($this->iterateRetry > self::SUBSCRIBER_ITERATE_MAX_RETRY) {
+            if ($this->iterateRetry >= self::SUBSCRIBER_ITERATE_MAX_RETRY) {
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
         }
@@ -175,9 +175,9 @@ class Worker implements WorkerInterface
      */
     protected function loopWait(float $startAt): void
     {
-        $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 1000));
+        $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 10000));
         if ($loopWait > 0) {
-            usleep(((int)$loopWait * 1000));
+            usleep(((int)$loopWait * 10000));
         }
     }
 }
