@@ -19,8 +19,8 @@ use function Chassis\Helpers\subscribe;
 class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
-    private const LOOP_EACH_MS = 5;
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 50;
+    private const LOOP_EACH_MS = 50;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 5;
 
     private Application $application;
     private ChannelsInterface $channels;
