@@ -20,7 +20,7 @@ class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const LOOP_EACH_MS = 50;
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 50;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 250;
 
     private Application $application;
     private ChannelsInterface $channels;
@@ -47,22 +47,14 @@ class Worker implements WorkerInterface
         try {
             $this->subscriberSetup();
             do {
-                // channel event poll
+                // channel event poll - 20ms wait for message from threads manager
                 if (!$this->polling()) {
                     break;
                 }
-                // subscriber streamer iterate
+                // subscriber streamer iterate - 250ms wait for message from message broker
                 $this->subscriberIterate();
             } while (true);
         } catch (Throwable $reason) {
-
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-                . $this->application->get("threadId") . " worker start exception = " . $reason->getMessage() . PHP_EOL,
-                FILE_APPEND
-            );
-
             // log this error & request respawning
             $this->application->logger()->error(
                 $reason->getMessage(),
@@ -114,14 +106,6 @@ class Worker implements WorkerInterface
                 $this->iterateRetry = 0;
             }
         } catch (Throwable $reason) {
-
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
-                FILE_APPEND
-            );
-
             // retry pattern
             $this->iterateRetry++;
             if ($this->iterateRetry >= self::SUBSCRIBER_ITERATE_MAX_RETRY) {
@@ -168,12 +152,6 @@ class Worker implements WorkerInterface
     protected function loopWait(float $startAt): void
     {
         $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 1000));
-
-//        var_dump(
-//            $this->application->get('threadConfiguration')["channelName"] . " - "
-//            . (microtime(true) - $startAt) . " - " . $loopWait
-//        );
-
         if ($loopWait > 0) {
             usleep(((int)$loopWait * 1000));
         }

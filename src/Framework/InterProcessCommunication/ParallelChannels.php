@@ -22,7 +22,7 @@ class ParallelChannels implements ChannelsInterface
     private const WORKER_CHANNEL_NAME = 'worker';
     private const THREAD_CHANNEL_NAME = 'thread';
     private const LOGGER_COMPONENT_PREFIX = 'parallel_channels_';
-    private const EVENTS_POOL_TIMEOUT_MS = 30;
+    private const EVENTS_POOL_TIMEOUT_MS = 20;
 
     private ?Channel $workerChannel;
     private ?Channel $threadChannel;
@@ -155,14 +155,6 @@ class ParallelChannels implements ChannelsInterface
             if (is_null($event)) {
                 return;
             }
-
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-                . " parallel channel event = " . json_encode($event) . PHP_EOL,
-                FILE_APPEND
-            );
-
             $this->handleEvent($event);
         } catch (Timeout $reason) {
             // fault-tolerant - timeout is a normal behaviour
