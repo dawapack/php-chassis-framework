@@ -86,10 +86,11 @@ class Worker implements WorkerInterface
 
         $message = $this->channels->getMessage();
         if (!is_null($message)) {
+
             file_put_contents(
                 "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v')
-                . " polling message - " . json_encode($message) . PHP_EOL,
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+                . $this->application->get("threadId") . " polling message - " . json_encode($message) . PHP_EOL,
                 FILE_APPEND
             );
         }
@@ -124,8 +125,8 @@ class Worker implements WorkerInterface
 
             file_put_contents(
                 "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v')
-                . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
                 FILE_APPEND
             );
 
