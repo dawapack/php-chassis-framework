@@ -85,6 +85,13 @@ class ThreadsManager implements ThreadsManagerInterface
                 ->send();
         }
 
+        file_put_contents(
+            "/var/www/logs/debug.log",
+            (new \DateTime('now'))->format('Y-m-d H:i:s.v')
+            . " threads manager stop all threads " . PHP_EOL,
+            FILE_APPEND
+        );
+
         $startAt = microtime(true);
         do {
             // wait for threads event
