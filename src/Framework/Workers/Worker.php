@@ -20,7 +20,7 @@ class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const LOOP_EACH_MS = 50;
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 250;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 125;
 
     private Application $application;
     private ChannelsInterface $channels;
