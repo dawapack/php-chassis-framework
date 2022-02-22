@@ -115,12 +115,12 @@ class Worker implements WorkerInterface
             }
         } catch (Throwable $reason) {
 
-//            file_put_contents(
-//                "/var/www/logs/debug.log",
-//                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-//                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
-//                FILE_APPEND
-//            );
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
+                FILE_APPEND
+            );
 
             // retry pattern
             $this->iterateRetry++;
