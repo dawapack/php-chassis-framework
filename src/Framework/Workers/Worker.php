@@ -176,6 +176,9 @@ class Worker implements WorkerInterface
     protected function loopWait(float $startAt): void
     {
         $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 10000));
+
+        var_dump($loopWait);
+
         if ($loopWait > 0) {
             usleep(((int)$loopWait * 10000));
         }
