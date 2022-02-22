@@ -110,6 +110,13 @@ class Worker implements WorkerInterface
                 $this->iterateRetry = 0;
             }
         } catch (Throwable $reason) {
+
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                "Subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
+                FILE_APPEND
+            );
+
             // retry pattern
             $this->iterateRetry++;
             if ($this->iterateRetry > self::SUBSCRIBER_ITERATE_MAX_RETRY) {
