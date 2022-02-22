@@ -36,9 +36,9 @@ class InterProcessCommunication
     {
         $messageToHandle = new IPCMessage($this->event->value);
         switch ($messageToHandle->headers->method) {
-            case "abort":
-                $this->aborting = $this->setMessage("aborting")->send();
-                break;
+//            case "abort":
+//                $this->aborting = $this->setMessage("aborting")->send();
+//                break;
             case "aborting":
                 $this->aborting = true;
                 break;
