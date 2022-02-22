@@ -47,13 +47,13 @@ class Worker implements WorkerInterface
         try {
             $this->subscriberSetup();
             do {
-//                $startAt = microtime(true);
+                $startAt = microtime(true);
                 // channel event poll & streamer iterate
                 if (!$this->polling()) {
                     break;
                 }
                 // Wait a while - prevent CPU load
-//                $this->loopWait($startAt);
+                $this->loopWait($startAt);
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
@@ -135,8 +135,6 @@ class Worker implements WorkerInterface
             if ($this->iterateRetry >= self::SUBSCRIBER_ITERATE_MAX_RETRY) {
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
-
-            usleep(25000);
         }
     }
 
