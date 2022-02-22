@@ -20,7 +20,7 @@ class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const LOOP_EACH_MS = 50;
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 125;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 100;
 
     private Application $application;
     private ChannelsInterface $channels;
@@ -53,6 +53,8 @@ class Worker implements WorkerInterface
                 }
                 // subscriber streamer iterate - 250ms wait for message from message broker
                 $this->subscriberIterate();
+
+                usleep(40000);
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
