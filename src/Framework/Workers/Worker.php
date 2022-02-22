@@ -55,6 +55,14 @@ class Worker implements WorkerInterface
                 $this->subscriberIterate();
             } while (true);
         } catch (Throwable $reason) {
+
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+                . $this->application->get("threadId") . " worker start exception = " . $reason->getMessage() . PHP_EOL,
+                FILE_APPEND
+            );
+
             // log this error & request respawning
             $this->application->logger()->error(
                 $reason->getMessage(),
