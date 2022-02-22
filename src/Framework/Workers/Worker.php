@@ -79,7 +79,7 @@ class Worker implements WorkerInterface
     /**
      * @return bool
      */
-    private function polling(): bool
+    protected function polling(): bool
     {
         // channel events pool
         $this->channels->eventsPoll();
@@ -93,10 +93,21 @@ class Worker implements WorkerInterface
         }
 
         // subscriber iterate
+        $this->subscriberIterate();
+
+        return true;
+    }
+
+    /**
+     * @return void
+     * @throws StreamerChannelIterateMaxRetryException
+     */
+    protected function subscriberIterate(): void
+    {
         try {
             if (isset($this->subscriberStreamer)) {
                 $this->subscriberStreamer->iterate();
-                $this->iterateRetry =0;
+                $this->iterateRetry = 0;
             }
         } catch (Throwable $reason) {
             // retry pattern
@@ -105,8 +116,6 @@ class Worker implements WorkerInterface
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
         }
-
-        return true;
     }
 
     /**
@@ -144,7 +153,7 @@ class Worker implements WorkerInterface
      *
      * @return void
      */
-    private function loopWait(float $startAt): void
+    protected function loopWait(float $startAt): void
     {
         $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 1000));
         if ($loopWait > 0) {
