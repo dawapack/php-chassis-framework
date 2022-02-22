@@ -83,6 +83,16 @@ class Worker implements WorkerInterface
     {
         // channel events pool
         $this->channels->eventsPoll();
+
+        $message = $this->channels->getMessage();
+        if (!is_null($message)) {
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                "Polling message - " . json_encode($message) . PHP_EOL,
+                FILE_APPEND
+            );
+        }
+
         if ($this->channels->isAbortRequested()) {
             // send aborting message to thread manager
             $this->channels->sendTo(
