@@ -138,9 +138,6 @@ class ThreadsManager implements ThreadsManagerInterface
 
         // handle event
         $threadId = str_replace(array("-worker", "-thread"), "", $event->source);
-
-        var_dump("Thread manager polling message - " . json_encode($event->value));
-
         $channel = $this->threads[$threadId]->getThreadChannel();
         $ipc = (new InterProcessCommunication($channel, $event))->handle();
         if ($ipc->isRespawnRequested()) {
