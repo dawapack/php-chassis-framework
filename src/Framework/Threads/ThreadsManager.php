@@ -79,18 +79,19 @@ class ThreadsManager implements ThreadsManagerInterface
         /**
          * @var ThreadInstance $threadInstance
          */
-        foreach ($this->threads as $threadInstance) {
+        foreach ($this->threads as $threadId => $threadInstance) {
             (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
                 ->setMessage("abort")
                 ->send();
-        }
 
-        file_put_contents(
-            "/var/www/logs/debug.log",
-            (new \DateTime('now'))->format('Y-m-d H:i:s.v')
-            . " threads manager stop all threads " . PHP_EOL,
-            FILE_APPEND
-        );
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v')
+                . " threads manager stop thread $threadId " . PHP_EOL,
+                FILE_APPEND
+            );
+
+        }
 
         $startAt = microtime(true);
         do {
