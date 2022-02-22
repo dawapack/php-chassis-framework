@@ -88,24 +88,16 @@ class Worker implements WorkerInterface
      */
     protected function polling(): bool
     {
-        $loop = 50;
-        do {
-
-            // channel events pool
-            $this->channels->eventsPoll();
-            if ($this->channels->isAbortRequested()) {
-                // send aborting message to thread manager
-                $this->channels->sendTo(
-                    $this->channels->getThreadChannel(),
-                    (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
-                );
-                return false;
-            }
-
-            usleep(1000);
-
-            $loop--;
-        } while ($loop > 0);
+        // channel events pool
+        $this->channels->eventsPoll();
+        if ($this->channels->isAbortRequested()) {
+            // send aborting message to thread manager
+            $this->channels->sendTo(
+                $this->channels->getThreadChannel(),
+                (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
+            );
+            return false;
+        }
 
         return true;
     }
