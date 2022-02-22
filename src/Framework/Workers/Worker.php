@@ -47,13 +47,12 @@ class Worker implements WorkerInterface
         try {
             $this->subscriberSetup();
             do {
-                $startAt = microtime(true);
-                // channel event poll & streamer iterate
+                // channel event poll
                 if (!$this->polling()) {
                     break;
                 }
-                // Wait a while - prevent CPU load
-                $this->loopWait($startAt);
+                // subscriber streamer iterate
+                $this->subscriberIterate();
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
@@ -81,31 +80,24 @@ class Worker implements WorkerInterface
      */
     protected function polling(): bool
     {
-        // channel events pool
-        $this->channels->eventsPoll();
+        $loop = 50;
+        do {
 
-        $message = $this->channels->getMessage();
-        if (!is_null($message)) {
+            // channel events pool
+            $this->channels->eventsPoll();
+            if ($this->channels->isAbortRequested()) {
+                // send aborting message to thread manager
+                $this->channels->sendTo(
+                    $this->channels->getThreadChannel(),
+                    (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
+                );
+                return false;
+            }
 
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-                . $this->application->get("threadId") . " polling message - " . json_encode($message) . PHP_EOL,
-                FILE_APPEND
-            );
-        }
+            usleep(1000);
 
-        if ($this->channels->isAbortRequested()) {
-            // send aborting message to thread manager
-            $this->channels->sendTo(
-                $this->channels->getThreadChannel(),
-                (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
-            );
-            return false;
-        }
-
-        // subscriber iterate
-        $this->subscriberIterate();
+            $loop--;
+        } while ($loop > 0);
 
         return true;
     }
@@ -123,12 +115,12 @@ class Worker implements WorkerInterface
             }
         } catch (Throwable $reason) {
 
-            file_put_contents(
-                "/var/www/logs/debug.log",
-                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
-                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
-                FILE_APPEND
-            );
+//            file_put_contents(
+//                "/var/www/logs/debug.log",
+//                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+//                . $this->application->get("threadId") . " subscriber iterate - retry = " . $this->iterateRetry . PHP_EOL,
+//                FILE_APPEND
+//            );
 
             // retry pattern
             $this->iterateRetry++;
