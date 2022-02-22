@@ -155,6 +155,14 @@ class ParallelChannels implements ChannelsInterface
             if (is_null($event)) {
                 return;
             }
+
+            file_put_contents(
+                "/var/www/logs/debug.log",
+                (new \DateTime('now'))->format('Y-m-d H:i:s.v') . " "
+                . " parallel channel event = " . json_encode($event) . PHP_EOL,
+                FILE_APPEND
+            );
+
             $this->handleEvent($event);
         } catch (Timeout $reason) {
             // fault-tolerant - timeout is a normal behaviour
