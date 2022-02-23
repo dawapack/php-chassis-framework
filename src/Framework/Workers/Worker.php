@@ -103,7 +103,7 @@ class Worker implements WorkerInterface
         try {
             if (!isset($this->subscriberStreamer)) {
                 // threads without subscriber need to wait more
-                usleep(250000);
+                usleep(500000);
                 return;
             }
             $this->subscriberStreamer->iterate();

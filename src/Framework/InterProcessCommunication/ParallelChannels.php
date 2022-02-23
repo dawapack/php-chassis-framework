@@ -22,7 +22,6 @@ class ParallelChannels implements ChannelsInterface
     private const WORKER_CHANNEL_NAME = 'worker';
     private const THREAD_CHANNEL_NAME = 'thread';
     private const LOGGER_COMPONENT_PREFIX = 'parallel_channels_';
-    private const EVENTS_POOL_TIMEOUT_MS = 0.01;
 
     private ?Channel $workerChannel;
     private ?Channel $threadChannel;
@@ -41,7 +40,7 @@ class ParallelChannels implements ChannelsInterface
     ) {
         $this->events = $events;
         $this->logger = $logger;
-        $this->eventsSetup();
+        $this->events->setBlocking(false);
     }
 
     /**
@@ -182,15 +181,6 @@ class ParallelChannels implements ChannelsInterface
         }
         $this->message = new IPCMessage($event->value);
         $this->events->addChannel($this->getListenedChannel());
-    }
-
-    /**
-     * @return void
-     */
-    private function eventsSetup(): void
-    {
-        $this->events->setBlocking(false);
-//        $this->events->setTimeout((int)(self::EVENTS_POOL_TIMEOUT_MS * 1000));
     }
 
     /**
