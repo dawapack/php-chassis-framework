@@ -104,10 +104,9 @@ class Worker implements WorkerInterface
             if (isset($this->subscriberStreamer)) {
                 $this->subscriberStreamer->iterate();
                 $this->iterateRetry = 0;
-                return;
             }
             // need to wait here - prevent CPU load
-            usleep(100000);
+            usleep(50000);
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;

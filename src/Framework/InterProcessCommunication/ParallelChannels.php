@@ -22,7 +22,7 @@ class ParallelChannels implements ChannelsInterface
     private const WORKER_CHANNEL_NAME = 'worker';
     private const THREAD_CHANNEL_NAME = 'thread';
     private const LOGGER_COMPONENT_PREFIX = 'parallel_channels_';
-    private const EVENTS_POOL_TIMEOUT_MS = 20;
+    private const EVENTS_POOL_TIMEOUT_MS = 1;
 
     private ?Channel $workerChannel;
     private ?Channel $threadChannel;
