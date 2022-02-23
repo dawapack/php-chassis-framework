@@ -101,13 +101,12 @@ class Worker implements WorkerInterface
     protected function subscriberIterate(): void
     {
         try {
-            $start = microtime(true);
             if (isset($this->subscriberStreamer)) {
                 $this->subscriberStreamer->iterate();
                 $this->iterateRetry = 0;
             }
             // need to wait here - prevent CPU load
-            usleep(50000);
+            usleep(10000);
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;
