@@ -22,7 +22,6 @@ class ParallelChannels implements ChannelsInterface
     private const WORKER_CHANNEL_NAME = 'worker';
     private const THREAD_CHANNEL_NAME = 'thread';
     private const LOGGER_COMPONENT_PREFIX = 'parallel_channels_';
-    private const EVENTS_POOL_TIMEOUT_MS = 0.1;
 
     private ?Channel $workerChannel;
     private ?Channel $threadChannel;
@@ -41,7 +40,7 @@ class ParallelChannels implements ChannelsInterface
     ) {
         $this->events = $events;
         $this->logger = $logger;
-        $this->eventsSetup();
+        $this->events->setBlocking(false);
     }
 
     /**
@@ -148,26 +147,25 @@ class ParallelChannels implements ChannelsInterface
     /**
      * @inheritdoc
      */
-    public function eventsPoll(): bool
+    public function eventsPoll(): void
     {
         try {
             $event = $this->events->poll();
-            if (!is_null($event)) {
-                return $this->handleEvent($event);
+            if (is_null($event)) {
+                return;
             }
+            $this->handleEvent($event);
         } catch (Timeout $reason) {
             // fault-tolerant - timeout is a normal behaviour
         }
-
-        return true;
     }
 
     /**
      * @param Event $event
      *
-     * @return bool
+     * @return void
      */
-    private function handleEvent(Event $event): bool
+    private function handleEvent(Event $event): void
     {
         // handle only read event types
         if ($event->type !== EventType::Read) {
@@ -179,25 +177,10 @@ class ParallelChannels implements ChannelsInterface
                     "event" => (array)$event
                 ]
             );
-            return true;
+            return;
         }
-
-        if (isset($event->value["headers"]["method"])) {
-            $this->message = new IPCMessage($event->value);
-            $this->events->addChannel($this->getListenedChannel());
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @return void
-     */
-    private function eventsSetup(): void
-    {
-        $this->events->setBlocking(true);
-        $this->events->setTimeout((int)(self::EVENTS_POOL_TIMEOUT_MS * 1000));
+        $this->message = new IPCMessage($event->value);
+        $this->events->addChannel($this->getListenedChannel());
     }
 
     /**

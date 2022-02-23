@@ -20,6 +20,17 @@ class InfrastructureStreamer extends AbstractStreamer
         return $channels->count();
     }
 
+    public function brokerActiveRpcSetup(): string
+    {
+        if ($this->application->has("activeRpcResponsesQueue")) {
+            return $this->application->get("activeRpcResponsesQueue");
+        }
+        // create the queue
+        $queueName =  $this->rpcCallbackQueueDeclare();
+        $this->application->add("activeRpcResponsesQueue", $queueName);
+
+        return $queueName;
+    }
     /**
      * @return int
      */

@@ -95,41 +95,6 @@ abstract class AbstractMessageBag implements MessageBagInterface
     /**
      * @inheritdoc
      */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setMessageType(string $messageType): self
-    {
-        $this->properties->type = $messageType;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setReplyTo(string $replyTo): self
-    {
-        $this->properties->reply_to = $replyTo;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setRoutingKey(string $routingKey): self
-    {
-        $this->bindings->routingKey = $routingKey;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getRoutingKey(): ?string
     {
         return $this->bindings->routingKey ?? '';
@@ -138,27 +103,44 @@ abstract class AbstractMessageBag implements MessageBagInterface
     /**
      * @inheritdoc
      */
-    public function setChannelName(string $channelName): self
+    public function getBody()
     {
-        $this->bindings->channelName = $channelName;
+        return $this->body;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setHeader(string $name, $value): self
+    {
+        $this->properties->application_headers[$name] = $value;
         return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function setExchangeName(string $exchangeName): self
+    public function setHeaders(array $headers): self
     {
-        $this->bindings->exchange = $exchangeName;
+        $this->properties->application_headers = array_merge(
+            $this->properties->application_headers,
+            $headers
+        );
         return $this;
     }
 
     /**
      * @inheritdoc
      */
-    public function setQueueName(string $queueName): self
-    {
-        $this->bindings->queue = $queueName;
+    public function setBody(
+        $body,
+        string $contentType = "application/json",
+        string $contentEncoding = "UTF-8"
+    ): self {
+        $this->properties->content_type = $contentType;
+        $this->properties->content_encoding = $contentEncoding;
+        $this->body = $body;
+
         return $this;
     }
 

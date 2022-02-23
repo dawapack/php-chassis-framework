@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
+use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
 use Chassis\Framework\Routers\Router;
 use Chassis\Framework\Routers\RouterInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
@@ -11,9 +12,8 @@ use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Message\AMQPMessage;
+use phpDocumentor\Reflection\Types\This;
 use Throwable;
-
-use function Chassis\Helpers\app;
 
 class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerInterface
 {
@@ -100,19 +100,14 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     /**
      * @inheritdoc
      */
-    public function consume(?Closure $callback = null): SubscriberStreamer
+    public function consume($callback = null): SubscriberStreamer
     {
+        // create new channel
         $this->streamChannel = $this->getChannel();
+        // set QOS
         $this->setStreamChannelQOS();
-        $this->streamChannel->basic_consume(...$this->toFunctionArguments($callback));
-
-        $this->logger->debug(
-            "debug info",
-            [
-                'component' => self::LOGGER_COMPONENT_PREFIX . "start_consuming",
-                'channel' => $this->channelName
-            ]
-        );
+        // consume
+        $this->streamChannel->basic_consume(...$this->fromChannelBindings($callback));
 
         return $this;
     }
@@ -123,12 +118,28 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     public function iterate(): void
     {
         try {
-            $this->streamChannel->wait(null, false, 0.25);
+            $this->streamChannel->wait(null, false, 0.5);
         } catch (AMQPTimeoutException $reason) {
             // Rise this exception on timeout - this is a normal behaviour
         }
         // check heartbeat
         $this->checkHeartbeat();
+    }
+
+    /**
+     * @return void
+     */
+    public function closeChannel(): void
+    {
+        if ($this->streamChannel->is_open()) {
+            $this->streamChannel->close();
+        }
+        if ($this->application->has("activeRpcResponsesQueue")) {
+            $activeRpc = $this->application->get("activeRpcResponsesQueue");
+            if ($activeRpc["channel"]->is_open()) {
+                $activeRpc["channel"]->close();
+            }
+        }
     }
 
     /**
@@ -164,7 +175,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
                 );
 
                 /** @var Router $router */
-                $router = app(RouterInterface::class);
+                $router = $this->application->get(RouterInterface::class);
                 $router->route($messageBag);
 
                 // ack the message?
@@ -174,7 +185,7 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
 
                 return;
             } catch (Throwable $reason) {
-                app()->logger()->error(
+                $this->application->logger()->error(
                     $reason->getMessage(),
                     [
                         'component' => self::LOGGER_COMPONENT_PREFIX . 'handle_data_exception',
@@ -213,19 +224,18 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
     }
 
     /**
-     * @param Closure|null $callback
+     * @param Closure|MessageHandlerInterface|null $callback
      *
      * @return array
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    private function toFunctionArguments(?Closure $callback): array
+    private function fromChannelBindings($callback): array
     {
+        $channelName = $this->getChannelName() ?? "";
         if (is_null($callback)) {
             $callback = $this->getDefaultConsumerCallback();
         }
-
-        $channelName = $this->getChannelName() ?? "";
 
         return array_values(
             $this->contractsManager

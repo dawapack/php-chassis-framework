@@ -64,12 +64,12 @@ class BrokerConnection extends DataTransferObject implements BindingsInterface
     /**
      * @var float
      */
-    public float $connection_timeout = 3.0;
+    public float $connection_timeout = 5.0;
 
     /**
      * @var float
      */
-    public float $read_write_timeout = 3.0;
+    public float $read_write_timeout = 30.0;
 
     /**
      * @var resource|array|null
@@ -89,7 +89,7 @@ class BrokerConnection extends DataTransferObject implements BindingsInterface
     /**
      * @var float
      */
-    public float $channel_rpc_timeout = 0.0;
+    public float $channel_rpc_timeout = 30.0;
 
     /**
      * @var string|null

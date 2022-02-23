@@ -35,56 +35,42 @@ interface MessageBagInterface
     public function getBindings(): BagBindings;
 
     /**
-     * @return mixed
-     */
-    public function getBody();
-
-    /**
-     * @param string $routingKey
-     *
-     * @return $this
-     */
-    public function setRoutingKey(string $routingKey): self;
-
-    /**
      * @return string|null
      */
     public function getRoutingKey(): ?string;
 
     /**
-     * @param string $messageType
-     *
-     * @return $this
+     * @return mixed
      */
-    public function setMessageType(string $messageType): self;
+    public function getBody();
 
     /**
-     * @param string $replyTo
+     * @param array|string $body
+     * @param string $contentType
+     * @param string $contentEncoding
      *
      * @return $this
      */
-    public function setReplyTo(string $replyTo): self;
+    public function setBody(
+        $body,
+        string $contentType = "application/json",
+        string $contentEncoding = "UTF-8"
+    ): self;
 
     /**
-     * @param string $channelName
+     * @param string $name
+     * @param mixed $value
      *
      * @return $this
      */
-    public function setChannelName(string $channelName): self;
+    public function setHeader(string $name, $value): self;
 
     /**
-     * @param string $exchangeName
+     * @param array $headers
      *
      * @return $this
      */
-    public function setExchangeName(string $exchangeName): self;
-
-    /**
-     * @param string $queueName
-     *
-     * @return $this
-     */
-    public function setQueueName(string $queueName): self;
+    public function setHeaders(array $headers): self;
 
     /**
      * @return AMQPMessage

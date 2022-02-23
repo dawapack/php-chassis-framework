@@ -79,7 +79,7 @@ class ThreadsManager implements ThreadsManagerInterface
         /**
          * @var ThreadInstance $threadInstance
          */
-        foreach ($this->threads as $threadInstance) {
+        foreach ($this->threads as $threadId => $threadInstance) {
             (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
                 ->setMessage("abort")
                 ->send();

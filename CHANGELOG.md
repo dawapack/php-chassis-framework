@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2022-02-19
+
+### Added
+
+- Remote procedure call ability
+- Fire and forget ability
+
 ## [0.2.0] - 2022-02-16
 
 ### Added
