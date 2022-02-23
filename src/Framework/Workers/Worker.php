@@ -105,6 +105,8 @@ class Worker implements WorkerInterface
                 $this->subscriberStreamer->iterate();
                 $this->iterateRetry = 0;
             }
+            // need to wait here - prevent CPU load
+            usleep(50000);
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;
@@ -114,8 +116,6 @@ class Worker implements WorkerInterface
             // wait before retry
             sleep(1);
         }
-        // need to wait here - prevent CPU load
-//        usleep(50000);
     }
 
     /**
