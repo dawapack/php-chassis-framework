@@ -117,11 +117,11 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
      */
     public function iterate(): void
     {
-        $loops = 25;
+        $loops = 5;
         do {
             $this->streamChannel->wait(null, true);
             // wait 10 ms - prevent CPU load
-            usleep(10000);
+            usleep(50000);
             $loops--;
         } while ($loops > 0);
         // check heartbeat
