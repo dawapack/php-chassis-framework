@@ -19,7 +19,6 @@ use function Chassis\Helpers\subscribe;
 class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
-    private const LOOP_EACH_MS = 50;
     private const SUBSCRIBER_ITERATE_MAX_RETRY = 100;
 
     private Application $application;
@@ -47,14 +46,12 @@ class Worker implements WorkerInterface
         try {
             $this->subscriberSetup();
             do {
-                // channel event poll - 20ms wait for message from threads manager
+                // IPC channel event poll
                 if (!$this->polling()) {
                     break;
                 }
-                // subscriber streamer iterate - 250ms wait for message from message broker
+                // subscriber streamer iterate
                 $this->subscriberIterate();
-
-                usleep(40000);
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
@@ -84,16 +81,17 @@ class Worker implements WorkerInterface
     {
         // channel events pool
         $this->channels->eventsPoll();
-        if ($this->channels->isAbortRequested()) {
-            // send aborting message to thread manager
-            $this->channels->sendTo(
-                $this->channels->getThreadChannel(),
-                (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
-            );
-            return false;
+        if (!$this->channels->isAbortRequested()) {
+            return true;
         }
 
-        return true;
+        // send aborting message to thread manager
+        $this->channels->sendTo(
+            $this->channels->getThreadChannel(),
+            (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
+        );
+
+        return false;
     }
 
     /**
@@ -106,7 +104,10 @@ class Worker implements WorkerInterface
             if (isset($this->subscriberStreamer)) {
                 $this->subscriberStreamer->iterate();
                 $this->iterateRetry = 0;
+                return;
             }
+            // need to wait here - prevent CPU load
+            usleep(100000);
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;
@@ -143,19 +144,6 @@ class Worker implements WorkerInterface
                 break;
             default:
                 throw new ThreadConfigurationException("unknown thread type");
-        }
-    }
-
-    /**
-     * @param float $startAt
-     *
-     * @return void
-     */
-    protected function loopWait(float $startAt): void
-    {
-        $loopWait = self::LOOP_EACH_MS - (round((microtime(true) - $startAt) * 1000));
-        if ($loopWait > 0) {
-            usleep(((int)$loopWait * 1000));
         }
     }
 }
