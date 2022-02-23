@@ -105,8 +105,6 @@ class Worker implements WorkerInterface
                 $this->subscriberStreamer->iterate();
                 $this->iterateRetry = 0;
             }
-            // need to wait here - prevent CPU load
-            usleep(50000);
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;
@@ -114,6 +112,8 @@ class Worker implements WorkerInterface
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
         }
+        // need to wait here - prevent CPU load
+        usleep(50000);
     }
 
     /**
