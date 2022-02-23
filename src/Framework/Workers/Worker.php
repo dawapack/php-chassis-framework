@@ -113,7 +113,7 @@ class Worker implements WorkerInterface
             }
         }
         // need to wait here - prevent CPU load
-        usleep(50000);
+//        usleep(50000);
     }
 
     /**
