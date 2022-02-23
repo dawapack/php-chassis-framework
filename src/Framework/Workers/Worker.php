@@ -19,7 +19,7 @@ use function Chassis\Helpers\subscribe;
 class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 100;
+    private const SUBSCRIBER_ITERATE_MAX_RETRY = 5;
 
     private Application $application;
     private ChannelsInterface $channels;
@@ -111,6 +111,8 @@ class Worker implements WorkerInterface
             if ($this->iterateRetry >= self::SUBSCRIBER_ITERATE_MAX_RETRY) {
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
+            // wait before retry
+            sleep(1);
         }
         // need to wait here - prevent CPU load
 //        usleep(50000);
