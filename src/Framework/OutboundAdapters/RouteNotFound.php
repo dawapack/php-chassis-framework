@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DaWaPack\OutboundAdapters;
+namespace Chassis\Framework\OutboundAdapters;
 
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;

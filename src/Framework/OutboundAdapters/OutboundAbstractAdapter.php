@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DaWaPack\OutboundAdapters;
+namespace Chassis\Framework\OutboundAdapters;
 
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
@@ -13,7 +13,6 @@ use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
-use phpDocumentor\Reflection\Types\This;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
