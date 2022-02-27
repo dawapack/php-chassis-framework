@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Chassis\Framework\Routers;
 
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
-use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
+use Chassis\Framework\OutboundAdapters\RouteNotFound;
 
 class InboundRouter implements RouterInterface, InboundRouterInterface
 {
@@ -29,10 +29,7 @@ class InboundRouter implements RouterInterface, InboundRouterInterface
      */
     public function route(MessageBagInterface $message): bool
     {
-        $route = $this->routes[$message->getProperty("type")] ?? RouteNotFoundException::class;
-
-        var_dump([__METHOD__, $this->routes, $route]);
-
+        $route = $this->routes[$message->getProperty("type")] ?? RouteNotFound::class;
         return $this->dispatcher->dispatch($route, $message, $this);
     }
 }
