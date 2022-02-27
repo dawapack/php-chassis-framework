@@ -66,6 +66,8 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $message->setMessageType($this->operation);
         }
 
+        var_dump([__METHOD__, $message, $this->channelName]);
+
         /** @var PublisherStreamer $publisher */
         $publisher = $this->application->get(PublisherStreamerInterface::class);
         $publisher->publish($message, $this->channelName);
