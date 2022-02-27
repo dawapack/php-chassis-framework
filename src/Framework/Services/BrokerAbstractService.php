@@ -49,7 +49,7 @@ class BrokerAbstractService implements ServiceInterface
     }
 
     /**
-     * @param string $operation
+     * @param string $route
      * @param BrokerRequest $message
      *
      * @return BrokerResponse|null
@@ -57,10 +57,10 @@ class BrokerAbstractService implements ServiceInterface
      * @throws NotFoundExceptionInterface
      * @throws RouteNotFoundException
      */
-    public function send(string $operation, BrokerRequest $message): ?BrokerResponse
+    public function send(string $route, BrokerRequest $message): ?BrokerResponse
     {
         /** @var OutboundRouter $outboundRouter */
         $outboundRouter = $this->app->get(OutboundRouterInterface::class);
-        return $outboundRouter->route($operation, $message);
+        return $outboundRouter->route($route, $message);
     }
 }

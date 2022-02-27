@@ -28,11 +28,11 @@ class OutboundRouter implements RouterInterface, OutboundRouterInterface
     /**
      * @inheritDoc
      */
-    public function route(string $operation, MessageBagInterface $message): ?BrokerResponse
+    public function route(string $route, MessageBagInterface $message): ?BrokerResponse
     {
-        if (!isset($this->routes[$operation])) {
-            throw new RouteNotFoundException("no route found for operation '$operation'");
+        if (!isset($this->routes[$route])) {
+            throw new RouteNotFoundException("route not found");
         }
-        return $this->dispatcher->dispatch($this->routes[$operation], $message, $this);
+        return $this->dispatcher->dispatch($this->routes[$route], $message, $this);
     }
 }
