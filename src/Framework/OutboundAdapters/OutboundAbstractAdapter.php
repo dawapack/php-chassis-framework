@@ -62,7 +62,7 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $message->setReplyTo($this->replyTo ?? "");
         }
         // alter message type
-        if (empty($message->getProperty("type"))) {
+        if (isset($this->operation)) {
             $message->setMessageType($this->operation);
         }
 
