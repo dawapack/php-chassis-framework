@@ -16,6 +16,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
+use function Chassis\Helpers\app;
 
 class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
 {
@@ -27,17 +28,9 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     protected string $replyTo;
     protected bool $isSyncOverAsync = false;
 
-    /**
-     * @var BrokerRequest|BrokerResponse
-     */
-    private $message;
-
-    /**
-     * @param Application $application
-     */
-    public function __construct(Application $application)
+    public function __construct()
     {
-        $this->application = $application;
+        $this->application = app();
     }
 
     /**
@@ -55,11 +48,10 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $message->setRoutingKey($this->routingKey ?? "");
             $message->setReplyTo($this->replyTo ?? "");
         }
-        $this->message = $message;
 
         /** @var PublisherStreamer $publisher */
         $publisher = $this->application->get(PublisherStreamerInterface::class);
-        $publisher->publish($this->message, $this->channelName);
+        $publisher->publish($message, $this->channelName);
 
         if ($this->isSyncOverAsync) {
             return $this->pull($timeout);

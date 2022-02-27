@@ -25,15 +25,6 @@ class RouteNotFound extends OutboundAbstractAdapter
     protected string $channelName = "";
 
     /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    public function __construct()
-    {
-        parent::__construct(app());
-    }
-
-    /**
      * @param MessageBagInterface $context
      *
      * @return bool
