@@ -84,7 +84,7 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $until = time() + $timeout;
             do {
                 $response = $channel->basic_get($this->replyTo);
-                if (is_null($response)) {
+                if (!is_null($response)) {
                     break;
                 }
                 // wait a while - prevent CPU load
