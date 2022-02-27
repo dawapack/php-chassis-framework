@@ -11,11 +11,12 @@ use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
 interface OutboundRouterInterface
 {
     /**
+     * @param string $operation
      * @param MessageBagInterface $message
      *
      * @return BrokerResponse|null
      *
      * @throws RouteNotFoundException
      */
-    public function route(MessageBagInterface $message): ?BrokerResponse;
+    public function route(string $operation, MessageBagInterface $message): ?BrokerResponse;
 }

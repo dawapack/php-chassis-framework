@@ -23,6 +23,7 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     protected const LOGGER_COMPONENT_PREFIX = "outbound_adapter_";
 
     protected Application $application;
+    protected string $operation;
     protected string $channelName;
     protected string $routingKey;
     protected string $replyTo;
@@ -59,6 +60,10 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $message->setChannelName($this->channelName ?? "");
             $message->setRoutingKey($this->routingKey ?? "");
             $message->setReplyTo($this->replyTo ?? "");
+        }
+        // alter message type
+        if (empty($message->getProperty("type"))) {
+            $message->setMessageType($this->operation);
         }
 
         /** @var PublisherStreamer $publisher */

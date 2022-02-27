@@ -59,11 +59,8 @@ class BrokerAbstractService implements ServiceInterface
      */
     public function send(string $operation, BrokerRequest $message): ?BrokerResponse
     {
-        // set message type
-        $message->setMessageType($operation);
-
         /** @var OutboundRouter $outboundRouter */
         $outboundRouter = $this->app->get(OutboundRouterInterface::class);
-        return $outboundRouter->route($message);
+        return $outboundRouter->route($operation, $message);
     }
 }
