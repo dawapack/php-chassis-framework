@@ -30,6 +30,9 @@ class InboundRouter implements RouterInterface, InboundRouterInterface
     public function route(MessageBagInterface $message): bool
     {
         $route = $this->routes[$message->getProperty("type")] ?? RouteNotFoundException::class;
+
+        var_dump([__METHOD__, $this->routes, $route]);
+
         return $this->dispatcher->dispatch($route, $message, $this);
     }
 }
