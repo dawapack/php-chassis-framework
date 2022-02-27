@@ -24,8 +24,7 @@ use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Logger\LoggerApplicationContext;
 use Chassis\Framework\Logger\LoggerApplicationContextInterface;
 use Chassis\Framework\Logger\LoggerFactory;
-use Chassis\Framework\Providers\ThreadInstanceServiceProvider;
-use Chassis\Framework\Providers\ThreadsManagerServiceProvider;
+use Chassis\Framework\Providers\ThreadsServiceProvider;
 use Chassis\Framework\Threads\Configuration\ThreadsConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use League\Config\Configuration as LeagueConfiguration;
@@ -161,8 +160,7 @@ class Application extends Container implements ArrayAccess
             ->setShared(false);
 
         // service provider declarations
-        $this->addServiceProvider(new ThreadsManagerServiceProvider());
-        $this->addServiceProvider(new ThreadInstanceServiceProvider());
+        $this->addServiceProvider(new ThreadsServiceProvider());
     }
 
     /**
