@@ -34,6 +34,18 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     }
 
     /**
+     * Nobody cares about the implementation
+     *
+     * @param MessageBagInterface $message
+     *
+     * @return BrokerResponse|null
+     */
+    public function __invoke(MessageBagInterface $message): ?BrokerResponse
+    {
+        return $this->send($message);
+    }
+
+    /**
      * @inheritdoc
      */
     public function send(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse

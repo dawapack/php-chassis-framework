@@ -11,8 +11,6 @@ use JsonException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-use function Chassis\Helpers\app;
-
 class RouteNotFound extends OutboundAbstractAdapter
 {
     protected const LOGGER_NOT_FOUND_COMPONENT = "route_not_found";
@@ -25,19 +23,20 @@ class RouteNotFound extends OutboundAbstractAdapter
     protected string $channelName = "";
 
     /**
-     * @param MessageBagInterface $context
+     * Nobody cares about the implementation
      *
-     * @return bool
+     * @param MessageBagInterface $message
      *
+     * @return BrokerResponse|null
      * @throws ContainerExceptionInterface
      * @throws JsonException
      * @throws MessageBagFormatException
      * @throws NotFoundExceptionInterface
      */
-    public function __invoke(MessageBagInterface $context): bool
+    public function __invoke(MessageBagInterface $message): ?BrokerResponse
     {
-        if (!empty($context->getProperty("reply_to"))) {
-            $this->send($this->createResponseMessage($context));
+        if (!empty($message->getProperty("reply_to"))) {
+            $this->send($this->createResponseMessage($message));
         }
 
         // log as info
@@ -45,11 +44,11 @@ class RouteNotFound extends OutboundAbstractAdapter
             "route not found",
             [
                 "component" => self::LOGGER_NOT_FOUND_COMPONENT,
-                "for_context" => $context->getProperties()
+                "for_context" => $message->getProperties()
             ]
         );
 
-        return true;
+        return null;
     }
 
     /**

@@ -34,9 +34,6 @@ class OutboundRouter implements RouterInterface, OutboundRouterInterface
         if (!isset($this->routes[$operation])) {
             throw new RouteNotFoundException("no route found for operation '$operation'");
         }
-
-        var_dump($this->routes);
-
         return $this->dispatcher->dispatch($this->routes[$operation], $message, $this);
     }
 }
