@@ -18,9 +18,6 @@ class RouteDispatcher implements RouteDispatcherInterface
     {
         // broker service resolver
         $service = $this->resolveRoute($route, $message);
-
-        var_dump($service);
-
         $response = $service["invokable"]
             ? ($service["instance"])($message)
             : $service["instance"]->{$service["method"]}();
