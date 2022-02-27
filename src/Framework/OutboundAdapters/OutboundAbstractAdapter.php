@@ -19,6 +19,8 @@ use Throwable;
 
 class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
 {
+    protected const LOGGER_COMPONENT_PREFIX = "outbound_adapter_";
+
     protected Application $application;
     protected string $channelName;
     protected string $routingKey;

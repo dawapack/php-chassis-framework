@@ -15,6 +15,8 @@ use function Chassis\Helpers\app;
 
 class RouteNotFound extends OutboundAbstractAdapter
 {
+    protected const LOGGER_NOT_FOUND_COMPONENT = "route_not_found";
+
     /**
      * Use empty channel name (AMQP default)
      *
@@ -44,6 +46,15 @@ class RouteNotFound extends OutboundAbstractAdapter
             $this->setMessage($this->createResponseMessage($context))
                 ->push();
         }
+
+        // log as info
+        $this->application->logger()->info(
+            "route not found",
+            [
+                "component" => self::LOGGER_NOT_FOUND_COMPONENT,
+                "for_context" => $context->getProperties()
+            ]
+        );
 
         return true;
     }
