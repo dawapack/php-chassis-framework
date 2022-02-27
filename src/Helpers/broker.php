@@ -91,7 +91,11 @@ if (!function_exists('remoteProcedureCall')) {
     ): ?BrokerResponse {
         $application = app();
 
+        // Create temporary queue if not exists
         $queueName = (new InfrastructureStreamer($application))->brokerActiveRpcSetup();
+        // Active RPC use AMQP default exchange, so clear message bindings channel name
+        $message->setChannelName("");
+        // Set message reply_to
         $message->setReplyTo($queueName);
 
         // publish the message
@@ -105,7 +109,7 @@ if (!function_exists('remoteProcedureCall')) {
             do {
                 $response = $channel->basic_get($queueName);
                 // wait a while - prevent CPU load
-                usleep(10000);
+                usleep(5000);
             } while ($until > time() && is_null($response));
 
             // handle response

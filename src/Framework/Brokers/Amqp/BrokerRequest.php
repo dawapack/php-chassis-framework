@@ -16,12 +16,10 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
     /**
      * @inheritdoc
      */
-    public function fromContext(MessageBagInterface $messageBag, string $operation): BrokerRequest
+    public function fromContext(MessageBagInterface $context): BrokerRequest
     {
-        // copy & adapt context properties to response
-        $this->setMessageType($operation);
-        if (isset($messageBag->properties->application_headers["jobId"])) {
-            $this->setHeader("jobId", $messageBag->properties->application_headers["jobId"]);
+        if (isset($context->properties->application_headers["jobId"])) {
+            $this->setHeader("jobId", $context->properties->application_headers["jobId"]);
         }
         return $this;
     }

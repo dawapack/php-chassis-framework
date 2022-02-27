@@ -45,7 +45,7 @@ class ChannelBindings extends DataTransferObject implements BindingsInterface
         if (empty($parameters)) {
             return [];
         }
-        $is = $parameters['is'] === "routingKey" ? "exchange" : "queue";
-        return array_merge($parameters[$is], ["is" => $parameters['is']]);
+        $isType = $parameters['is'] === "routingKey" ? "exchange" : "queue";
+        return array_merge($parameters[$isType], ["is" => $parameters['is']]);
     }
 }

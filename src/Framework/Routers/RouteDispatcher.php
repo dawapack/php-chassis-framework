@@ -9,15 +9,12 @@ use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 
 use function Chassis\Helpers\publish;
 
-class RouteDispatcher
+class RouteDispatcher implements RouteDispatcherInterface
 {
     /**
-     * @param array|string $route
-     * @param MessageBagInterface $message
-     *
-     * @return bool
+     * @inheritdoc
      */
-    public function dispatch($route, MessageBagInterface $message): bool
+    public function dispatch($route, MessageBagInterface $message, RouterInterface $router)
     {
         // broker service resolver
         $service = $this->resolveRoute($route, $message);
@@ -25,12 +22,17 @@ class RouteDispatcher
             ? ($service["instance"])($message)
             : $service["instance"]->{$service["method"]}();
 
-        // dispatch response?
+        // return outbound router response
+        if ($router instanceof OutboundRouter) {
+            return $response;
+        }
+
+        // dispatch inbound router response if any
         if ($response instanceof BrokerResponse) {
             $this->dispatchResponse($response);
         }
 
-        return true;
+        return null;
     }
 
     /**

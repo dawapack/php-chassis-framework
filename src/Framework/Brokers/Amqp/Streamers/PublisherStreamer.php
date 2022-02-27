@@ -99,14 +99,14 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
         !isset($this->ackHandler) && $this->setAckHandler(new NullAckHandler());
         !isset($this->nackHandler) && $this->setNackHandler(new NullNackHandler());
 
-        $ackHandler = $this->getAckHandler();
-        $nackHandler = $this->getNackHandler();
+        $acknowledgeHandler = $this->getAckHandler();
+        $negativeAcknowledgeHandler = $this->getNackHandler();
 
-        $this->streamerChannel->set_ack_handler(function (AMQPMessage $message) use ($ackHandler) {
-            $ackHandler->handle($message);
+        $this->streamerChannel->set_ack_handler(function (AMQPMessage $message) use ($acknowledgeHandler) {
+            $acknowledgeHandler->handle($message);
         });
-        $this->streamerChannel->set_nack_handler(function (AMQPMessage $message) use ($nackHandler) {
-            $nackHandler->handle($message);
+        $this->streamerChannel->set_nack_handler(function (AMQPMessage $message) use ($negativeAcknowledgeHandler) {
+            $negativeAcknowledgeHandler->handle($message);
         });
 
         $this->streamerChannel->confirm_select();

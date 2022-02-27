@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Chassis\Framework\Brokers\Amqp\Streamers;
 
 use Chassis\Framework\Brokers\Amqp\Handlers\MessageHandlerInterface;
-use Chassis\Framework\Routers\Router;
-use Chassis\Framework\Routers\RouterInterface;
+use Chassis\Framework\Routers\InboundRouter;
+use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -174,8 +174,8 @@ class SubscriberStreamer extends AbstractStreamer implements SubscriberStreamerI
                     $message->getConsumerTag()
                 );
 
-                /** @var Router $router */
-                $router = $this->application->get(RouterInterface::class);
+                /** @var InboundRouter $router */
+                $router = $this->application->get(InboundRouterInterface::class);
                 $router->route($messageBag);
 
                 // ack the message?

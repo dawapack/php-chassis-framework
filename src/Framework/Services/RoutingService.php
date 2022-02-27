@@ -13,10 +13,9 @@ class RoutingService extends BrokerAbstractService
      */
     public function routeNotfound()
     {
-        if (empty($this->message->getProperty("reply_to"))) {
-            return;
+        if (!empty($this->message->getProperty("reply_to"))) {
+            return $this->response()
+                ->setStatus(404, "ROUTE NOT FOUND");
         }
-        return $this->response()
-            ->setStatus(404, "ROUTE NOT FOUND");
     }
 }
