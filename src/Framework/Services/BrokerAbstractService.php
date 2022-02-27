@@ -42,10 +42,10 @@ class BrokerAbstractService implements ServiceInterface
             ->fromContext($this->message);
     }
 
-    public function request(string $operation, array $body): BrokerRequest
+    public function request(array $body): BrokerRequest
     {
         return (new BrokerRequest($body))
-            ->fromContext($this->message, $operation);
+            ->fromContext($this->message);
     }
 
     /**

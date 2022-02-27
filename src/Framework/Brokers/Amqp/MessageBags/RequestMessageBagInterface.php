@@ -8,11 +8,10 @@ interface RequestMessageBagInterface
 {
     /**
      * @param MessageBagInterface $context
-     * @param string $operation
      *
      * @return $this
      */
-    public function fromContext(MessageBagInterface $context, string $operation): self;
+    public function fromContext(MessageBagInterface $context): self;
 
     /**
      * @param string $messageType

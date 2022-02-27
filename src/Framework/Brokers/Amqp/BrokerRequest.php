@@ -16,9 +16,8 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
     /**
      * @inheritdoc
      */
-    public function fromContext(MessageBagInterface $context, string $operation): BrokerRequest
+    public function fromContext(MessageBagInterface $context): BrokerRequest
     {
-        $this->setMessageType($operation);
         if (isset($context->properties->application_headers["jobId"])) {
             $this->setHeader("jobId", $context->properties->application_headers["jobId"]);
         }
