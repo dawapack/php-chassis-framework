@@ -23,20 +23,6 @@ class RouteNotFound extends OutboundAbstractAdapter
     protected string $channelName = "";
 
     /**
-     * This will be overwritten from context
-     *
-     * @var string
-     */
-    protected string $routingKey = "";
-
-    /**
-     * Route not found has no reply to property
-     *
-     * @var string
-     */
-    protected string $replyTo = "";
-
-    /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -55,7 +41,6 @@ class RouteNotFound extends OutboundAbstractAdapter
     public function __invoke(MessageBagInterface $context): bool
     {
         if (!empty($context->getProperty("reply_to"))) {
-            $this->routingKey = $context->getProperty("reply_to");
             $this->setMessage($this->createResponseMessage($context))
                 ->push();
         }

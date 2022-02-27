@@ -56,8 +56,6 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             $this->channelName = "";
             $this->replyTo = $this->createCallbackQueue();
         }
-        // Setup message bindings
-        $this->setMessageBindings();
 
         /** @var PublisherStreamer $publisher */
         $publisher = $this->application->get(PublisherStreamerInterface::class);
@@ -120,16 +118,5 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     {
         return (new InfrastructureStreamer($this->application))
             ->brokerActiveRpcSetup();
-    }
-
-    /**
-     * @return void
-     */
-    protected function setMessageBindings(): void
-    {
-        $this->message
-            ->setChannelName($this->channelName)
-            ->setRoutingKey($this->routingKey)
-            ->setReplyTo($this->replyTo);
     }
 }
