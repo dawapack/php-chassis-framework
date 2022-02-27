@@ -60,7 +60,7 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
      * @inheritDoc
      */
     public function publish(
-        MessageBagInterface $messageBag,
+        MessageBagInterface $message,
         string $channelName = "",
         $publishAcknowledgeTimeout = 5
     ): void {
@@ -72,7 +72,7 @@ class PublisherStreamer extends AbstractStreamer implements PublisherStreamerInt
             // basic publish
             $this->streamerChannel->basic_publish(
                 ...array_values(
-                    $this->contractsManager->toBasicPublishFunctionArguments($messageBag, $channelName)
+                    $this->contractsManager->toBasicPublishFunctionArguments($message, $channelName)
                 )
             );
             // wait for acknowledgements - ack or nack

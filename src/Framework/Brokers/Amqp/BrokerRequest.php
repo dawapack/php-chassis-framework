@@ -8,9 +8,6 @@ use Chassis\Framework\Brokers\Amqp\MessageBags\AbstractMessageBag;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\MessageBags\RequestMessageBagInterface;
 
-use function Chassis\Helpers\publish;
-use function Chassis\Helpers\remoteProcedureCall;
-
 class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInterface
 {
     /**
@@ -77,14 +74,4 @@ class BrokerRequest extends AbstractMessageBag implements RequestMessageBagInter
         $this->bindings->queue = $queueName;
         return $this;
     }
-
-//    public function call(int $timeout = 30): ?BrokerResponse
-//    {
-//        return remoteProcedureCall($this, $timeout);
-//    }
-
-//    public function push(): void
-//    {
-//        publish($this);
-//    }
 }

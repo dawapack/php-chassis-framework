@@ -28,14 +28,14 @@ interface ContractsManagerInterface
     public function getChannels(): BrokerChannelsCollection;
 
     /**
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
      * @param string|null $channelName
      *
      * @return array
      *
      * @throws StreamerChannelNameNotFoundException
      */
-    public function toBasicPublishFunctionArguments(MessageBagInterface $messageBag, string $channelName): array;
+    public function toBasicPublishFunctionArguments(MessageBagInterface $message, string $channelName): array;
 
     /**
      * @param string $channelName

@@ -57,11 +57,11 @@ class ContractsManager implements ContractsManagerInterface
     /**
      * @inheritDoc
      */
-    public function toBasicPublishFunctionArguments(MessageBagInterface $messageBag, string $channelName): array
+    public function toBasicPublishFunctionArguments(MessageBagInterface $message, string $channelName): array
     {
-        if (!empty($messageBag->getBindings()->channelName)) {
+        if (!empty($message->getBindings()->channelName)) {
             // overwrite channel name - use given message binding channel name
-            $channelName = $messageBag->getBindings()->channelName;
+            $channelName = $message->getBindings()->channelName;
         }
         $brokerChannel = $this->getChannel($channelName);
         if (!empty($channelName) && is_null($brokerChannel)) {
@@ -69,9 +69,9 @@ class ContractsManager implements ContractsManagerInterface
         }
 
         return [
-            'message' => $messageBag->toAmqpMessage(),
+            'message' => $message->toAmqpMessage(),
             'exchange' => $brokerChannel->channelBindings->name ?? "",
-            'routingKey' => $messageBag->getRoutingKey(),
+            'routingKey' => $message->getRoutingKey(),
             'mandatory' => $brokerChannel->operationBindings->mandatory ?? false,
             'immediate' => false,
             'ticket' => null
