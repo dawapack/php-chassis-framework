@@ -43,25 +43,29 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     /**
      * @inheritdoc
      */
-    public function setMessage(MessageBagInterface $message): self
-    {
-        $this->message = $message;
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function push(): void
+    public function send(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse
     {
         if ($this->isSyncOverAsync) {
             $this->channelName = "";
             $this->replyTo = $this->createCallbackQueue();
         }
+        // alter message if message is request type
+        if ($message instanceof BrokerRequest) {
+            $message->setChannelName($this->channelName ?? "");
+            $message->setRoutingKey($this->routingKey ?? "");
+            $message->setReplyTo($this->replyTo ?? "");
+        }
+        $this->message = $message;
 
         /** @var PublisherStreamer $publisher */
         $publisher = $this->application->get(PublisherStreamerInterface::class);
         $publisher->publish($this->message, $this->channelName);
+
+        if ($this->isSyncOverAsync) {
+            return $this->pull($timeout);
+        }
+
+        return null;
     }
 
     /**

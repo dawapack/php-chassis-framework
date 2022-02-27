@@ -32,7 +32,7 @@ class RouteDispatcher implements RouteDispatcherInterface
             $this->dispatchResponse($response);
         }
 
-        return true;
+        return null;
     }
 
     /**

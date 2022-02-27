@@ -8,6 +8,11 @@ use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
+use Chassis\Framework\Routers\OutboundRouter;
+use Chassis\Framework\Routers\OutboundRouterInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 use function Chassis\Helpers\app;
 
@@ -21,8 +26,8 @@ class BrokerAbstractService implements ServiceInterface
     /**
      * @param MessageBagInterface $message
      *
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function __construct(
         MessageBagInterface $message
@@ -41,5 +46,24 @@ class BrokerAbstractService implements ServiceInterface
     {
         return (new BrokerRequest($body))
             ->fromContext($this->message, $operation);
+    }
+
+    /**
+     * @param string $operation
+     * @param BrokerRequest $message
+     *
+     * @return BrokerResponse|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws RouteNotFoundException
+     */
+    public function send(string $operation, BrokerRequest $message): ?BrokerResponse
+    {
+        // set message type
+        $message->setMessageType($operation);
+
+        /** @var OutboundRouter $outboundRouter */
+        $outboundRouter = $this->app->get(OutboundRouterInterface::class);
+        return $outboundRouter->route($message);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
+use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
 
@@ -27,7 +28,7 @@ class OutboundRouter implements RouterInterface, OutboundRouterInterface
     /**
      * @inheritDoc
      */
-    public function route(MessageBagInterface $message): bool
+    public function route(MessageBagInterface $message): ?BrokerResponse
     {
         $operation = $message->getProperty("type");
         if (!isset($this->routes[$operation])) {

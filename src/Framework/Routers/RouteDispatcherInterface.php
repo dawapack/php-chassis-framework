@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
+use Chassis\Framework\Brokers\Amqp\BrokerRequest;
+use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 
 interface RouteDispatcherInterface
@@ -13,7 +15,7 @@ interface RouteDispatcherInterface
      * @param MessageBagInterface $message
      * @param RouterInterface $router
      *
-     * @return MessageBagInterface|bool
+     * @return BrokerRequest|BrokerResponse|null
      */
     public function dispatch(?string $route, MessageBagInterface $message, RouterInterface $router);
 }

@@ -37,14 +37,16 @@ class RouteNotFound extends OutboundAbstractAdapter
      * @param MessageBagInterface $context
      *
      * @return bool
+     *
+     * @throws ContainerExceptionInterface
      * @throws JsonException
      * @throws MessageBagFormatException
+     * @throws NotFoundExceptionInterface
      */
     public function __invoke(MessageBagInterface $context): bool
     {
         if (!empty($context->getProperty("reply_to"))) {
-            $this->setMessage($this->createResponseMessage($context))
-                ->push();
+            $this->send($this->createResponseMessage($context));
         }
 
         // log as info

@@ -12,15 +12,11 @@ interface BrokerOutboundAdapterInterface
 {
     /**
      * @param BrokerResponse|BrokerRequest $message
+     * @param int $timeout
      *
-     * @return $this
+     * @return BrokerResponse|null
      */
-    public function setMessage(MessageBagInterface $message): self;
-
-    /**
-     * @return void
-     */
-    public function push(): void;
+    public function send(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse;
 
     /**
      * @param int $timeout
