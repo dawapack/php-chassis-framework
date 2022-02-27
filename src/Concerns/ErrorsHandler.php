@@ -60,7 +60,7 @@ trait ErrorsHandler
                 return;
             }
 
-            throw new ApplicationErrorException($message, 0, $level, $file, $line);
+            throw new ApplicationErrorException($message, 0, $level, $file, $line, $context);
         }
     }
 

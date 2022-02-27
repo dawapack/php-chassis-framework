@@ -8,7 +8,8 @@ use Chassis\Application;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Kernel;
-use Chassis\Framework\Routers\RouterInterface;
+use Chassis\Framework\Routers\InboundRouterInterface;
+use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
 use Chassis\Framework\Workers\Worker;
@@ -149,7 +150,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     array $threadConfiguration,
                     Channel $workerChannel,
                     Channel $threadChannel,
-                    RouterInterface $router
+                    InboundRouterInterface $inboundRouter,
+                    OutboundRouterInterface $outboundRouter
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -176,7 +178,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([$app, ChannelsInterface::class]);
-                    $app->add(RouterInterface::class, $router);
+                    $app->add(InboundRouterInterface::class, $inboundRouter);
+                    $app->add(OutboundRouterInterface::class, $outboundRouter);
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
@@ -187,7 +190,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
                     $this->threadChannel,
-                    app(RouterInterface::class)
+                    app(InboundRouterInterface::class),
+                    app(OutboundRouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {

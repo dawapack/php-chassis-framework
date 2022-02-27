@@ -32,13 +32,10 @@ class Kernel implements KernelInterface
      */
     public function boot(): void
     {
-        switch (RUNNER_TYPE) {
-            case "worker":
-                ($this->app->get(WorkerInterface::class))->start();
-                break;
-            case "daemon":
-                ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
-                break;
+        if (RUNNER_TYPE === "worker") {
+            ($this->app->get(WorkerInterface::class))->start();
+        } elseif (RUNNER_TYPE === "daemon") {
+            ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
         }
     }
 

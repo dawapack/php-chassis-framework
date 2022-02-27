@@ -13,18 +13,18 @@ class BrokerResponse extends AbstractMessageBag implements ResponseMessageBagInt
     /**
      * @inheritdoc
      */
-    public function fromContext(MessageBagInterface $messageBag): BrokerResponse
+    public function fromContext(MessageBagInterface $context): BrokerResponse
     {
         // response is allowed only for BrokerResponse instance type having reply to property set
-        if (!($messageBag instanceof BrokerRequest) || is_null($messageBag->getProperty("reply_to"))) {
+        if (!($context instanceof BrokerRequest) || is_null($context->getProperty("reply_to"))) {
             return $this;
         }
         // copy & adapt context properties to response
-        $this->bindings->routingKey = $messageBag->getProperty("reply_to");
-        $this->properties->correlation_id = $messageBag->getProperty("correlation_id");
-        $this->properties->type = $messageBag->getProperty("type") . "Response";
-        if (isset($messageBag->properties->application_headers["jobId"])) {
-            $this->properties->application_headers["jobId"] = $messageBag->properties->application_headers["jobId"];
+        $this->bindings->routingKey = $context->getProperty("reply_to");
+        $this->properties->correlation_id = $context->getProperty("correlation_id");
+        $this->properties->type = $context->getProperty("type") . "Response";
+        if (isset($context->properties->application_headers["jobId"])) {
+            $this->properties->application_headers["jobId"] = $context->properties->application_headers["jobId"];
         }
         return $this;
     }

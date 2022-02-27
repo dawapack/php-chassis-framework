@@ -23,11 +23,13 @@ abstract class AbstractMessageBag implements MessageBagInterface
     public const DEFAULT_CONTENT_ENCODING = 'UTF-8';
     public const DEFAULT_VERSION = '1.0.0';
     public const DEFAULT_DATETIME_FORMAT = 'Y-m-d H:i:s.v';
-
     public const TEXT_CONTENT_TYPE = 'text/plain';
     public const GZIP_CONTENT_TYPE = 'application/gzip';
-    public const JSON_CONTENT_TYPE = 'application/json';
+    public const JSON_CONTENT_TYPE = self::DEFAULT_CONTENT_TYPE;
     public const MSGPACK_CONTENT_TYPE = 'application/msgpack';
+
+    private const BODY_FORMAT_MISMATCH_MESSAGE = 'body format mismatch';
+    private const UNKNOWN_CONTENT_FORMAT_TYPE_MESSAGE = 'unknown content format type';
 
     protected BagProperties $properties;
     protected BagBindings $bindings;
@@ -134,8 +136,8 @@ abstract class AbstractMessageBag implements MessageBagInterface
      */
     public function setBody(
         $body,
-        string $contentType = "application/json",
-        string $contentEncoding = "UTF-8"
+        string $contentType = self::DEFAULT_CONTENT_TYPE,
+        string $contentEncoding = self::DEFAULT_CONTENT_ENCODING
     ): self {
         $this->properties->content_type = $contentType;
         $this->properties->content_encoding = $contentEncoding;
@@ -165,25 +167,19 @@ abstract class AbstractMessageBag implements MessageBagInterface
         switch ($this->properties->content_type) {
             case self::TEXT_CONTENT_TYPE:
                 if (!is_string($this->body)) {
-                    throw new MessageBagFormatException(
-                        "body format mismatch '" . self::TEXT_CONTENT_TYPE . "'"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 $encodedBody = $this->body;
                 break;
             case self::JSON_CONTENT_TYPE:
                 if (!is_array($this->body) && !is_object($this->body)) {
-                    throw new MessageBagFormatException(
-                        "body type mismatch array or object"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 $encodedBody = json_encode($this->body);
                 break;
             case self::GZIP_CONTENT_TYPE:
                 if (!is_string($this->body) && !is_array($this->body) && !is_object($this->body)) {
-                    throw new MessageBagFormatException(
-                        "body type mismatch string or array or object"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 if (is_array($this->body) || is_object($this->body)) {
                     $this->body = json_encode($this->body);
@@ -191,9 +187,7 @@ abstract class AbstractMessageBag implements MessageBagInterface
                 $encodedBody = base64_encode(gzcompress($this->body));
                 break;
             default:
-                throw new MessageBagFormatException(
-                    "unknown content format type"
-                );
+                throw new MessageBagFormatException(self::UNKNOWN_CONTENT_FORMAT_TYPE_MESSAGE);
         }
         return $encodedBody;
     }
@@ -212,9 +206,7 @@ abstract class AbstractMessageBag implements MessageBagInterface
         switch ($this->properties->content_type) {
             case self::JSON_CONTENT_TYPE:
                 if (!is_string($decodedBody)) {
-                    throw new MessageBagFormatException(
-                        "body type mismatch - must be string"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 $decodedBody = json_decode($body, true, 64, JSON_THROW_ON_ERROR);
                 break;
@@ -222,22 +214,16 @@ abstract class AbstractMessageBag implements MessageBagInterface
                 try {
                     $decodedBody = gzuncompress(base64_decode($body));
                 } catch (Throwable $reason) {
-                    throw new MessageBagFormatException(
-                        "body format mismatch '" . self::GZIP_CONTENT_TYPE . "'"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 break;
             case self::TEXT_CONTENT_TYPE:
                 if (!is_string($decodedBody)) {
-                    throw new MessageBagFormatException(
-                        "body format mismatch '" . self::TEXT_CONTENT_TYPE . "'"
-                    );
+                    throw new MessageBagFormatException(self::BODY_FORMAT_MISMATCH_MESSAGE);
                 }
                 break;
             default:
-                throw new MessageBagFormatException(
-                    "unknown content format type"
-                );
+                throw new MessageBagFormatException(self::UNKNOWN_CONTENT_FORMAT_TYPE_MESSAGE);
         }
         return $decodedBody;
     }

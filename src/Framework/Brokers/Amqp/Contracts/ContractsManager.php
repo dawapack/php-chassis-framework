@@ -59,6 +59,10 @@ class ContractsManager implements ContractsManagerInterface
      */
     public function toBasicPublishFunctionArguments(MessageBagInterface $messageBag, string $channelName): array
     {
+        if (!empty($messageBag->getBindings()->channelName)) {
+            // overwrite channel name - use given message binding channel name
+            $channelName = $messageBag->getBindings()->channelName;
+        }
         $brokerChannel = $this->getChannel($channelName);
         if (!empty($channelName) && is_null($brokerChannel)) {
             throw new StreamerChannelNameNotFoundException("channel name '$channelName' not found");
@@ -66,7 +70,7 @@ class ContractsManager implements ContractsManagerInterface
 
         return [
             'message' => $messageBag->toAmqpMessage(),
-            'exchange' => $brokerChannel->channelBindings->name ?? '',
+            'exchange' => $brokerChannel->channelBindings->name ?? "",
             'routingKey' => $messageBag->getRoutingKey(),
             'mandatory' => $brokerChannel->operationBindings->mandatory ?? false,
             'immediate' => false,
