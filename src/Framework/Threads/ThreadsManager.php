@@ -55,7 +55,8 @@ class ThreadsManager implements ThreadsManagerInterface
     public function start(bool &$stopRequested): void
     {
         $this->threadsSetup();
-        $this->eventsSetup();
+//        $this->eventsSetup();
+        $this->events->setBlocking(false);
         do {
             if ($stopRequested) {
                 $this->stop();
@@ -63,6 +64,8 @@ class ThreadsManager implements ThreadsManagerInterface
             }
             // wait for threads event
             $this->eventsPoll();
+            // wait a while, prevent CPU load
+            usleep(50000);
         } while (true);
     }
 
@@ -83,6 +86,8 @@ class ThreadsManager implements ThreadsManagerInterface
         do {
             // wait for threads event
             $this->eventsPoll();
+            // wait a while, prevent CPU load
+            usleep(50000);
         } while (!empty($this->threads));
     }
 
