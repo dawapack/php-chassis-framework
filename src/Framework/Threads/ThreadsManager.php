@@ -57,7 +57,7 @@ class ThreadsManager implements ThreadsManagerInterface
         $this->threadsSetup();
         $this->eventsSetup();
         do {
-            var_dump(__METHOD__ . "loop again");
+            var_dump(__METHOD__ . "loop again - stop requested = " . ($stopRequested ? "true" : "false"));
             if ($stopRequested) {
                 $this->stop();
                 break;
@@ -76,10 +76,10 @@ class ThreadsManager implements ThreadsManagerInterface
          * @var ThreadInstance $threadInstance
          */
         foreach ($this->threads as $threadId => $threadInstance) {
+            var_dump("abort requested - $threadId");
             (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
                 ->setMessage("abort")
                 ->send();
-            var_dump("abort requested - $threadId");
         }
 
         do {
