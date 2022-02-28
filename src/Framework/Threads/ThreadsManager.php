@@ -67,7 +67,7 @@ class ThreadsManager implements ThreadsManagerInterface
             // wait for threads event
             $this->eventsPoll();
             // wait a while, prevent CPU load
-            usleep(100000);
+            usleep(250000);
         } while (true);
     }
 
@@ -79,17 +79,17 @@ class ThreadsManager implements ThreadsManagerInterface
         /**
          * @var ThreadInstance $threadInstance
          */
-        foreach ($this->threads as $threadId => $threadInstance) {
-            (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
-                ->setMessage("abort")
-                ->send();
+        foreach ($this->threads as $threadInstance) {
+            ($threadInstance->getWorkerChannel())->send(
+                (new IPCMessage())->set(ParallelChannels::METHOD_ABORT_REQUESTED)
+            );
         }
 
         do {
             // wait for threads event
             $this->eventsPoll();
             // wait a while, prevent CPU load
-            usleep(100000);
+            usleep(10000);
         } while (!empty($this->threads));
     }
 
@@ -157,16 +157,6 @@ class ThreadsManager implements ThreadsManagerInterface
         $this->events->addChannel(
             $this->threads[$threadId]->getThreadChannel()
         );
-
-//        $ipc = (new InterProcessCommunication($channel, $event))->handle();
-//        if ($ipc->isRespawnRequested()) {
-//            $this->respawnThread($this->threads[$threadId]->getConfiguration());
-//        }
-//        if ($ipc->isAborting() || $ipc->isRespawnRequested()) {
-//            unset($this->threads[$threadId]);
-//            return;
-//        }
-//        $this->events->addChannel($channel);
     }
 
     /**
@@ -262,19 +252,5 @@ class ThreadsManager implements ThreadsManagerInterface
             $event->source
         );
         return isset($this->threads[$threadId]) ? $threadId : null;
-    }
-
-    /**
-     * @param int $loopEach
-     * @param float $startAt
-     *
-     * @return void
-     */
-    private function loopWait(int $loopEach, float $startAt): void
-    {
-        $loopWait = $loopEach - (round((microtime(true) - $startAt) * 1000));
-        if ($loopWait > 0) {
-            usleep(((int)$loopWait * 1000));
-        }
     }
 }
