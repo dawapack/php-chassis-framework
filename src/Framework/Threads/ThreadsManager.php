@@ -20,7 +20,7 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 250;
+    private const EVENTS_POOL_TIMEOUT_MS = 200;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -64,6 +64,8 @@ class ThreadsManager implements ThreadsManagerInterface
             }
             // wait for threads event
             $this->eventsPoll();
+            // wait a while, prevent CPU load
+            usleep(50000);
         } while (true);
     }
 
