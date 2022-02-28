@@ -67,7 +67,7 @@ class ThreadsManager implements ThreadsManagerInterface
             // wait for threads event
             $this->eventsPoll();
             // wait a while, prevent CPU load
-            usleep(250000);
+            usleep(330000);
         } while (true);
     }
 
