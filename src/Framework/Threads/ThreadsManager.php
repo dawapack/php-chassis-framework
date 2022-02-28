@@ -13,6 +13,8 @@ use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
 use parallel\Events\Event\Type as EventType;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 
 use function Chassis\Helpers\app;
@@ -20,7 +22,6 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 100;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -49,13 +50,12 @@ class ThreadsManager implements ThreadsManagerInterface
      *
      * @return void
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function start(bool &$stopRequested): void
     {
         $this->threadsSetup();
-//        $this->eventsSetup();
         $this->events->setBlocking(false);
         do {
             if ($stopRequested) {
@@ -65,7 +65,7 @@ class ThreadsManager implements ThreadsManagerInterface
             // wait for threads event
             $this->eventsPoll();
             // wait a while, prevent CPU load
-            usleep(50000);
+            usleep(100000);
         } while (true);
     }
 
@@ -87,7 +87,7 @@ class ThreadsManager implements ThreadsManagerInterface
             // wait for threads event
             $this->eventsPoll();
             // wait a while, prevent CPU load
-            usleep(50000);
+            usleep(100000);
         } while (!empty($this->threads));
     }
 
@@ -116,8 +116,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function eventHandler(Event $event): void
     {
@@ -152,8 +152,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function threadsSetup(): void
     {
@@ -180,8 +180,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function spawnThread(ThreadConfiguration $threadConfiguration): void
     {
@@ -200,8 +200,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function respawnThread(array $configuration): void
     {
@@ -226,16 +226,6 @@ class ThreadsManager implements ThreadsManagerInterface
         $this->threads[$threadId] = $threadInstance;
         // add event listener
         $this->events->addChannel($threadInstance->getThreadChannel());
-    }
-
-    /**
-     * @return void
-     */
-    protected function eventsSetup(): void
-    {
-        // timeout must be in microseconds
-        $this->events->setBlocking(true);
-        $this->events->setTimeout((self::EVENTS_POOL_TIMEOUT_MS * 1000));
     }
 
     /**
