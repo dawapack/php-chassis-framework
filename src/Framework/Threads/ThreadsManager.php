@@ -126,7 +126,7 @@ class ThreadsManager implements ThreadsManagerInterface
             );
             return;
         }
-        // get thread is from event
+        // get thread id from event
         $threadId = $this->getThreadIdFromEventSource($event);
         if (is_null($threadId)) {
             return;
