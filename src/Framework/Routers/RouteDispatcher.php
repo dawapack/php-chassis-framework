@@ -10,23 +10,19 @@ use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 
+use function Chassis\Helpers\app;
+
 class RouteDispatcher implements RouteDispatcherInterface
 {
     private Application $application;
-
-    /**
-     * @param Application $application
-     */
-    public function __construct(Application $application)
-    {
-        $this->application = $application;
-    }
 
     /**
      * @inheritdoc
      */
     public function dispatch($route, MessageBagInterface $message, RouterInterface $router)
     {
+        $this->application = app();
+
         // broker service resolver
         $service = $this->resolveRoute($route, $message);
         $response = $service["invokable"]
