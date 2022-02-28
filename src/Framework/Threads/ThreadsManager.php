@@ -20,7 +20,7 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 100;
+    private const EVENTS_POOL_TIMEOUT_MS = 250;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -74,10 +74,11 @@ class ThreadsManager implements ThreadsManagerInterface
         /**
          * @var ThreadInstance $threadInstance
          */
-        foreach ($this->threads as $threadInstance) {
+        foreach ($this->threads as $threadId => $threadInstance) {
             (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
                 ->setMessage("abort")
                 ->send();
+            var_dump("abort requested - $threadId");
         }
 
         do {
