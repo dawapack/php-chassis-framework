@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Chassis\Framework\Threads;
 
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
-use Chassis\Framework\InterProcessCommunication\InterProcessCommunication;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
-use parallel\Channel;
 use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
