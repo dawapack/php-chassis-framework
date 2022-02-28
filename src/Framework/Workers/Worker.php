@@ -141,13 +141,8 @@ class Worker implements WorkerInterface
                 // wait a while - infrastructure must declare exchanges, queues & bindings
                 usleep(rand(2500000, 4000000));
                 // create subscriber
-//                $this->subscriberStreamer = subscribe(
-//                    $threadConfiguration["channelName"],
-//                    $threadConfiguration["handler"]
-//                );
-                /** @var SubscriberStreamer $subscriber */
-                $subscriber = $this->application->get(SubscriberStreamerInterface::class);
-                $subscriber->setChannelName($threadConfiguration["channelName"])
+                $this->subscriberStreamer = ($this->application->get(SubscriberStreamerInterface::class))
+                    ->setChannelName($threadConfiguration["channelName"])
                     ->setHandler($threadConfiguration["handler"])
                     ->consume();
 
