@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Threads;
 
+use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
 use Chassis\Framework\InterProcessCommunication\InterProcessCommunication;
+use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
@@ -131,21 +133,40 @@ class ThreadsManager implements ThreadsManagerInterface
             );
             return;
         }
+
         // get thread id from event
         $threadId = $this->getThreadIdFromEventSource($event);
         if (is_null($threadId)) {
             return;
         }
-        $channel = $this->threads[$threadId]->getThreadChannel();
-        $ipc = (new InterProcessCommunication($channel, $event))->handle();
-        if ($ipc->isRespawnRequested()) {
+        $messageMethod = (new IPCMessage($event->value))->getHeader("method");
+
+        // is respawn requested?
+        if ($messageMethod === ParallelChannels::METHOD_RESPAWN_REQUESTED) {
             $this->respawnThread($this->threads[$threadId]->getConfiguration());
         }
-        if ($ipc->isAborting() || $ipc->isRespawnRequested()) {
+
+        // finally, on aborting or respawn, remove thread from the list
+        if (
+            $messageMethod === ParallelChannels::METHOD_ABORTING
+            || $messageMethod === ParallelChannels::METHOD_RESPAWN_REQUESTED
+        ) {
             unset($this->threads[$threadId]);
             return;
         }
-        $this->events->addChannel($channel);
+        $this->events->addChannel(
+            $this->threads[$threadId]->getThreadChannel()
+        );
+
+//        $ipc = (new InterProcessCommunication($channel, $event))->handle();
+//        if ($ipc->isRespawnRequested()) {
+//            $this->respawnThread($this->threads[$threadId]->getConfiguration());
+//        }
+//        if ($ipc->isAborting() || $ipc->isRespawnRequested()) {
+//            unset($this->threads[$threadId]);
+//            return;
+//        }
+//        $this->events->addChannel($channel);
     }
 
     /**
