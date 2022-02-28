@@ -10,6 +10,7 @@ use Chassis\Framework\Routers\OutboundRouter;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Routers\RouteDispatcher;
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use function Chassis\Helpers\app;
 
 class RoutingServiceProvider extends AbstractServiceProvider
 {
@@ -29,11 +30,12 @@ class RoutingServiceProvider extends AbstractServiceProvider
     public function register(): void
     {
         $container = $this->getContainer();
+        $application = app();
 
         $container->add(InboundRouterInterface::class, InboundRouter::class)
-            ->addArguments([new RouteDispatcher(), $this->inboundRoutes]);
+            ->addArguments([new RouteDispatcher($application), $this->inboundRoutes]);
 
         $container->add(OutboundRouterInterface::class, OutboundRouter::class)
-            ->addArguments([new RouteDispatcher(), $this->outboundRoutes]);
+            ->addArguments([new RouteDispatcher($application), $this->outboundRoutes]);
     }
 }

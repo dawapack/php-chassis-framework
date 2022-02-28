@@ -29,27 +29,24 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     protected string $replyTo;
     protected bool $isSyncOverAsync = false;
 
-    public function __construct()
-    {
-        $this->application = app();
-    }
-
     /**
      * Nobody cares about the implementation
      *
      * @param MessageBagInterface $message
+     * @param Application $application
      *
      * @return BrokerResponse|null
      */
-    public function __invoke(MessageBagInterface $message): ?BrokerResponse
+    public function __invoke(MessageBagInterface $message, Application $application): ?BrokerResponse
     {
-        return $this->send($message);
+        $this->application = $application;
+        return $this->push($message);
     }
 
     /**
      * @inheritdoc
      */
-    public function send(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse
+    public function push(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse
     {
         if ($this->isSyncOverAsync) {
             $this->channelName = "";
