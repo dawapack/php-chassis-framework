@@ -8,6 +8,7 @@ use Chassis\Framework\InterProcessCommunication\InterProcessCommunication;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
+use parallel\Channel;
 use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
@@ -19,8 +20,7 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 1;
-    private const LOOP_EACH_MS = 100;
+    private const EVENTS_POOL_TIMEOUT_MS = 50;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -56,8 +56,6 @@ class ThreadsManager implements ThreadsManagerInterface
     {
         $this->threadsSetup();
         $this->eventsSetup();
-
-        $startAt = microtime(true);
         do {
             if ($stopRequested) {
                 $this->stop();
@@ -65,9 +63,6 @@ class ThreadsManager implements ThreadsManagerInterface
             }
             // wait for threads event
             $this->eventsPoll();
-            // Wait a while - prevent CPU load
-            $this->loopWait(self::LOOP_EACH_MS, $startAt);
-            $startAt = microtime(true);
         } while (true);
     }
 
@@ -85,13 +80,9 @@ class ThreadsManager implements ThreadsManagerInterface
                 ->send();
         }
 
-        $startAt = microtime(true);
         do {
             // wait for threads event
             $this->eventsPoll();
-            // Wait a while - prevent CPU load
-            $this->loopWait(self::LOOP_EACH_MS, $startAt);
-            $startAt = microtime(true);
         } while (!empty($this->threads));
     }
 
@@ -136,8 +127,11 @@ class ThreadsManager implements ThreadsManagerInterface
             return;
         }
 
-        // handle event
-        $threadId = str_replace(array("-worker", "-thread"), "", $event->source);
+        // get thread is from event
+        $threadId = $this->getThreadIdFromEventSource($event);
+        if (is_null($threadId)) {
+            return;
+        }
         $channel = $this->threads[$threadId]->getThreadChannel();
         $ipc = (new InterProcessCommunication($channel, $event))->handle();
         if ($ipc->isRespawnRequested()) {
@@ -238,6 +232,21 @@ class ThreadsManager implements ThreadsManagerInterface
         // timeout must be in microseconds
         $this->events->setBlocking(true);
         $this->events->setTimeout(self::EVENTS_POOL_TIMEOUT_MS);
+    }
+
+    /**
+     * @param Event $event
+     *
+     * @return string|null
+     */
+    protected function getThreadIdFromEventSource(Event $event): ?string
+    {
+        $threadId = str_replace(
+            array("-worker", "-thread"),
+            "",
+            $event->source
+        );
+        return isset($this->threads[$threadId]) ? $threadId : null;
     }
 
     /**

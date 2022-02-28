@@ -43,4 +43,14 @@ class IPCMessage extends DataTransferObject
 
         return $this;
     }
+
+    /**
+     * @param string $key
+     *
+     * @return mixed|null
+     */
+    public function getHeader(string $key)
+    {
+        return $this->headers->{$key} ?? null;
+    }
 }
