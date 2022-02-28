@@ -57,6 +57,7 @@ class ThreadsManager implements ThreadsManagerInterface
         $this->threadsSetup();
         $this->eventsSetup();
         do {
+            var_dump(__METHOD__ . "loop again");
             if ($stopRequested) {
                 $this->stop();
                 break;
