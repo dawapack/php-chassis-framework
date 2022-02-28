@@ -80,9 +80,12 @@ class ThreadsManager implements ThreadsManagerInterface
          * @var ThreadInstance $threadInstance
          */
         foreach ($this->threads as $threadInstance) {
-            ($threadInstance->getWorkerChannel())->send(
-                (new IPCMessage())->set(ParallelChannels::METHOD_ABORT_REQUESTED)
-            );
+            ($threadInstance->getWorkerChannel())
+                ->send(
+                    (new IPCMessage())
+                        ->set(ParallelChannels::METHOD_ABORT_REQUESTED)
+                        ->toArray()
+                );
         }
 
         do {
