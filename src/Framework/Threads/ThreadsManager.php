@@ -20,7 +20,7 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 200;
+    private const EVENTS_POOL_TIMEOUT_MS = 100;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -57,15 +57,12 @@ class ThreadsManager implements ThreadsManagerInterface
         $this->threadsSetup();
         $this->eventsSetup();
         do {
-            var_dump(__METHOD__ . "loop again - stop requested = " . ($stopRequested ? "true" : "false"));
             if ($stopRequested) {
                 $this->stop();
                 break;
             }
             // wait for threads event
             $this->eventsPoll();
-            // wait a while, prevent CPU load
-            usleep(50000);
         } while (true);
     }
 
@@ -78,7 +75,6 @@ class ThreadsManager implements ThreadsManagerInterface
          * @var ThreadInstance $threadInstance
          */
         foreach ($this->threads as $threadId => $threadInstance) {
-            var_dump("abort requested - $threadId");
             (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
                 ->setMessage("abort")
                 ->send();
@@ -130,9 +126,6 @@ class ThreadsManager implements ThreadsManagerInterface
             );
             return;
         }
-
-        var_dump([__METHOD__, $event]);
-
         // get thread is from event
         $threadId = $this->getThreadIdFromEventSource($event);
         if (is_null($threadId)) {
