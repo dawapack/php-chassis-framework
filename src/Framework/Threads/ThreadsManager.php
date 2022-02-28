@@ -20,7 +20,7 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 50;
+    private const EVENTS_POOL_TIMEOUT_MS = 100;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -127,6 +127,8 @@ class ThreadsManager implements ThreadsManagerInterface
             return;
         }
 
+        var_dump([__METHOD__, $event]);
+
         // get thread is from event
         $threadId = $this->getThreadIdFromEventSource($event);
         if (is_null($threadId)) {
@@ -231,7 +233,7 @@ class ThreadsManager implements ThreadsManagerInterface
     {
         // timeout must be in microseconds
         $this->events->setBlocking(true);
-        $this->events->setTimeout(self::EVENTS_POOL_TIMEOUT_MS);
+        $this->events->setTimeout((self::EVENTS_POOL_TIMEOUT_MS * 1000));
     }
 
     /**
