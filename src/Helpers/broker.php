@@ -18,50 +18,50 @@ use Closure;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-if (!function_exists('publish')) {
-    /**
-     * @param MessageBagInterface $message
-     * @param string|null $channelName
-     * @param int $publishAcknowledgeTimeout
-     *
-     * @return void
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws StreamerChannelClosedException
-     */
-    function publish(
-        MessageBagInterface $message,
-        string $channelName = "",
-        int $publishAcknowledgeTimeout = 5
-    ): void {
-        /** @var PublisherStreamer $publisher */
-        $publisher = app(PublisherStreamerInterface::class);
-        $publisher->publish($message, $channelName, $publishAcknowledgeTimeout);
-    }
-}
+//if (!function_exists('publish')) {
+//    /**
+//     * @param MessageBagInterface $message
+//     * @param string|null $channelName
+//     * @param int $publishAcknowledgeTimeout
+//     *
+//     * @return void
+//     *
+//     * @throws ContainerExceptionInterface
+//     * @throws NotFoundExceptionInterface
+//     * @throws StreamerChannelClosedException
+//     */
+//    function publish(
+//        MessageBagInterface $message,
+//        string $channelName = "",
+//        int $publishAcknowledgeTimeout = 5
+//    ): void {
+//        /** @var PublisherStreamer $publisher */
+//        $publisher = app(PublisherStreamerInterface::class);
+//        $publisher->publish($message, $channelName, $publishAcknowledgeTimeout);
+//    }
+//}
 
-if (!function_exists('subscribe')) {
-    /**
-     * @param string $channelName
-     * @param string $messageBagHandler - BrokerRequest::class or BrokerResponse::class
-     * @param Closure|MessageHandlerInterface|null $messageHandler
-     *
-     * @return SubscriberStreamer
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws StreamerChannelNameNotFoundException
-     */
-    function subscribe(
-        string $channelName,
-        string $messageBagHandler,
-        $messageHandler = null
-    ): SubscriberStreamer {
-        /** @var SubscriberStreamer $subscriber */
-        $subscriber = app(SubscriberStreamerInterface::class);
-        return $subscriber->setChannelName($channelName)
-            ->setHandler($messageBagHandler)
-            ->consume($messageHandler);
-    }
-}
+//if (!function_exists('subscribe')) {
+//    /**
+//     * @param string $channelName
+//     * @param string $messageBagHandler - BrokerRequest::class or BrokerResponse::class
+//     * @param Closure|MessageHandlerInterface|null $messageHandler
+//     *
+//     * @return SubscriberStreamer
+//     *
+//     * @throws ContainerExceptionInterface
+//     * @throws NotFoundExceptionInterface
+//     * @throws StreamerChannelNameNotFoundException
+//     */
+//    function subscribe(
+//        string $channelName,
+//        string $messageBagHandler,
+//        $messageHandler = null
+//    ): SubscriberStreamer {
+//        /** @var SubscriberStreamer $subscriber */
+//        $subscriber = app(SubscriberStreamerInterface::class);
+//        return $subscriber->setChannelName($channelName)
+//            ->setHandler($messageBagHandler)
+//            ->consume($messageHandler);
+//    }
+//}
