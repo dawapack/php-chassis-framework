@@ -68,7 +68,7 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
         $publisher->publish($message, $this->channelName);
 
         if ($this->isSyncOverAsync) {
-            return $this->pull($timeout);
+            return $this->pull($timeout, $message);
         }
 
         return null;
@@ -77,7 +77,7 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     /**
      * @inheritdoc
      */
-    public function pull(int $timeout = 30): ?BrokerResponse
+    public function pull(int $timeout = 30, MessageBagInterface $context = null): ?BrokerResponse
     {
         /** @var AMQPChannel $channel */
         $channel = ($this->application->get("brokerStreamConnection"))->channel();
@@ -87,7 +87,11 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
             do {
                 $response = $channel->basic_get($this->replyTo);
                 if (!is_null($response)) {
-                    break;
+                    if ($this->isResponseForContext($response, $context)) {
+                        break;
+                    }
+                    // remove this message from the queue
+                    $response->nack();
                 }
                 // wait a while - prevent CPU load
                 usleep(5000);
@@ -130,5 +134,26 @@ class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
     {
         return (new InfrastructureStreamer($this->application))
             ->brokerActiveRpcSetup();
+    }
+
+    /**
+     * @param AMQPMessage $response
+     * @param MessageBagInterface|null $context
+     *
+     * @return bool
+     */
+    protected function isResponseForContext(AMQPMessage $response, MessageBagInterface $context = null): bool
+    {
+        // if no context is provided, this will always return true
+        if (is_null($context)) {
+            return true;
+        }
+
+        $correlationId = $response->get_properties()["correlation_id"] ?? null;
+        if (!is_null($correlationId) && $context->getProperty("correlation_id") === $correlationId) {
+            return true;
+        }
+
+        return false;
     }
 }

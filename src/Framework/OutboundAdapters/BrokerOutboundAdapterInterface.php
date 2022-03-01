@@ -20,8 +20,9 @@ interface BrokerOutboundAdapterInterface
 
     /**
      * @param int $timeout
+     * @param MessageBagInterface|null $context
      *
      * @return BrokerResponse|null
      */
-    public function pull(int $timeout = 30): ?BrokerResponse;
+    public function pull(int $timeout = 30, ?MessageBagInterface $context = null): ?BrokerResponse;
 }
