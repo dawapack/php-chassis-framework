@@ -10,7 +10,6 @@ use Chassis\Framework\Routers\OutboundRouter;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Routers\RouteDispatcher;
 use League\Container\ServiceProvider\AbstractServiceProvider;
-use function Chassis\Helpers\app;
 
 class RoutingServiceProvider extends AbstractServiceProvider
 {

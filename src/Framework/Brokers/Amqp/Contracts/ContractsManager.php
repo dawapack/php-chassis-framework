@@ -107,7 +107,7 @@ class ContractsManager implements ContractsManagerInterface
     {
         return $this->brokerConfiguration
             ->getConnectionConfiguration()
-            ->toFunctionArguments(false);
+            ->toFunctionArguments(true);
     }
 
     /**

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Chassis;
 
-use ArrayAccess;
 use Chassis\Concerns\ErrorsHandler;
 use Chassis\Concerns\Runner;
 use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfiguration;
@@ -37,12 +36,13 @@ use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class Application extends Container implements ArrayAccess
+class Application extends Container
 {
     use ErrorsHandler;
     use Runner;
 
     private static Application $instance;
+    private LoggerInterface $logger;
     private string $basePath;
     private array $properties;
 
@@ -106,7 +106,10 @@ class Application extends Container implements ArrayAccess
         } catch (Throwable $reason) {
             $this->logger()->error(
                 $reason->getMessage(),
-                ["error" => $reason]
+                [
+                    "component" => "application_configuration_get_exception",
+                    "error" => $reason
+                ]
             );
         }
         return null;
@@ -126,7 +129,10 @@ class Application extends Container implements ArrayAccess
         } catch (Throwable $reason) {
             $this->logger()->error(
                 $reason->getMessage(),
-                ["error" => $reason]
+                [
+                    "component" => "application_with_configuration_exception",
+                    "error" => $reason
+                ]
             );
         }
     }
@@ -138,7 +144,11 @@ class Application extends Container implements ArrayAccess
      */
     public function logger(): LoggerInterface
     {
-        return $this->get(LoggerInterface::class);
+        if (isset($this->logger)) {
+            return $this->logger;
+        }
+        $this->logger = $this->get(LoggerInterface::class);
+        return $this->logger;
     }
 
     /**
@@ -149,17 +159,15 @@ class Application extends Container implements ArrayAccess
      */
     public function withThreads(): void
     {
-        // load configurations
         $this->withConfig("threads");
 
-        // container bindings
         $this->add(ThreadsConfigurationInterface::class, ThreadsConfiguration::class)
             ->addArgument($this->get("config")->get("threads"));
+
         $this->add(ChannelsInterface::class, ParallelChannels::class)
             ->addArguments([new Events(), LoggerInterface::class])
             ->setShared(false);
 
-        // service provider declarations
         $this->addServiceProvider(new ThreadsServiceProvider());
     }
 
@@ -173,48 +181,12 @@ class Application extends Container implements ArrayAccess
      */
     public function withBroker(bool $bindDependencies = false): void
     {
-        // load configurations
         $this->withConfig("broker");
 
-        // container bindings
         $this->add(BrokerConfigurationInterface::class, BrokerConfiguration::class)
             ->addArgument($this->get("config")->get("broker"));
 
-        if ($bindDependencies) {
-            $this->bindBrokerDependencies();
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetExists($offset): bool
-    {
-        return isset($this->properties[$offset]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetGet($offset)
-    {
-        return $this->properties[$offset] ?? null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetSet($offset, $value): void
-    {
-        $this->properties[$offset] = $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetUnset($offset)
-    {
-        unset($this->properties[$offset]);
+        $bindDependencies && $this->bindBrokerDependencies();
     }
 
     /**
@@ -222,17 +194,18 @@ class Application extends Container implements ArrayAccess
      */
     private function bindBrokerDependencies(): void
     {
-        // container bindings
         $this->add(ContractsManagerInterface::class, ContractsManager::class)
             ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator()]);
+
         $this->add('brokerStreamConnection', function ($contractsManager) {
-            return new AMQPStreamConnection(
-                ...array_values($contractsManager->toStreamConnectionFunctionArguments())
-            );
+            return new AMQPStreamConnection(...$contractsManager->toStreamConnectionFunctionArguments());
         })->addArgument(ContractsManagerInterface::class);
+
         $this->add(MessageHandlerInterface::class, MessageHandler::class);
+
         $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
             ->addArgument($this)->setShared(false);
+
         $this->add(PublisherStreamerInterface::class, PublisherStreamer::class)
             ->addArgument($this)->setShared(false);
     }

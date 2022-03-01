@@ -52,7 +52,7 @@ trait ErrorsHandler
      *
      * @throws ApplicationErrorException
      */
-    public function handleError($level, $message, $file = '', $line = 0, $context = [])
+    public function handleError($level, $message, $file = '', $line = 0, $context = []): void
     {
         if (error_reporting() & $level) {
             // Do not throw deprecations
@@ -73,7 +73,7 @@ trait ErrorsHandler
      *
      * @throws Throwable
      */
-    protected function handleException(Throwable $reason)
+    protected function handleException(Throwable $reason): void
     {
         $this->logger()->alert(
             "Application unhandled exception",
@@ -93,7 +93,7 @@ trait ErrorsHandler
      *
      * @throws Throwable
      */
-    public function handleShutdown()
+    public function handleShutdown(): void
     {
         if (!is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
             $this->handleException($this->fatalErrorFromPhpError($error, 0));
@@ -108,7 +108,7 @@ trait ErrorsHandler
      *
      * @return FatalError
      */
-    protected function fatalErrorFromPhpError(array $error, $traceOffset = null)
+    protected function fatalErrorFromPhpError(array $error, ?int $traceOffset = null): FatalError
     {
         return new FatalError($error['message'], 0, $error, $traceOffset);
     }
@@ -120,7 +120,7 @@ trait ErrorsHandler
      *
      * @return bool
      */
-    protected function isFatal($type)
+    protected function isFatal(int $type): bool
     {
         return in_array($type, [E_COMPILE_ERROR, E_CORE_ERROR, E_ERROR, E_PARSE]);
     }
@@ -132,7 +132,7 @@ trait ErrorsHandler
      *
      * @return bool
      */
-    protected function isDeprecation($level)
+    protected function isDeprecation(int $level): bool
     {
         return in_array($level, [E_DEPRECATED, E_USER_DEPRECATED]);
     }
