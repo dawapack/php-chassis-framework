@@ -29,6 +29,7 @@ use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use League\Config\Configuration as LeagueConfiguration;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
+use Opis\JsonSchema\Validator;
 use parallel\Events;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use Psr\Container\ContainerExceptionInterface;
@@ -195,7 +196,7 @@ class Application extends Container
     private function bindBrokerDependencies(): void
     {
         $this->add(ContractsManagerInterface::class, ContractsManager::class)
-            ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator()]);
+            ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator(new Validator())]);
 
         $this->add('brokerStreamConnection', function ($contractsManager) {
             return new AMQPStreamConnection(...$contractsManager->toStreamConnectionFunctionArguments());

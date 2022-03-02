@@ -21,7 +21,7 @@ class ContractsManager implements ContractsManagerInterface
     public const OPERATION_PUBLISH = 'publish';
     public const OPERATION_SUBSCRIBE = 'subscribe';
 
-    private BrokerConfiguration $brokerConfiguration;
+    private BrokerConfigurationInterface $brokerConfiguration;
     private ContractsValidator $validator;
     private array $channels = [];
 

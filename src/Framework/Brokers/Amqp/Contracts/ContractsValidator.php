@@ -17,9 +17,9 @@ class ContractsValidator
 
     private Validator $validator;
 
-    public function __construct()
+    public function __construct(Validator $validator)
     {
-        $this->validator = new Validator();
+        $this->validator = $validator;
     }
 
     public static function getAllSchemaNames(): array
