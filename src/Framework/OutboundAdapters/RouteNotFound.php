@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\OutboundAdapters;
 
+use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Exceptions\MessageBagFormatException;
@@ -26,6 +27,7 @@ class RouteNotFound extends OutboundAbstractAdapter
      * Nobody cares about the implementation
      *
      * @param MessageBagInterface $message
+     * @param Application $application
      *
      * @return BrokerResponse|null
      * @throws ContainerExceptionInterface
@@ -33,10 +35,11 @@ class RouteNotFound extends OutboundAbstractAdapter
      * @throws MessageBagFormatException
      * @throws NotFoundExceptionInterface
      */
-    public function __invoke(MessageBagInterface $message): ?BrokerResponse
+    public function __invoke(MessageBagInterface $message, Application $application): ?BrokerResponse
     {
+        $this->application = $application;
         if (!empty($message->getProperty("reply_to"))) {
-            $this->send($this->createResponseMessage($message));
+            $this->push($this->createResponseMessage($message));
         }
 
         // log as info

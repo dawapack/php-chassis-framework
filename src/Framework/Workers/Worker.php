@@ -7,6 +7,7 @@ namespace Chassis\Framework\Workers;
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
+use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelIterateMaxRetryException;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
@@ -140,10 +141,11 @@ class Worker implements WorkerInterface
                 // wait a while - infrastructure must declare exchanges, queues & bindings
                 usleep(rand(2500000, 4000000));
                 // create subscriber
-                $this->subscriberStreamer = subscribe(
-                    $threadConfiguration["channelName"],
-                    $threadConfiguration["handler"]
-                );
+                $this->subscriberStreamer = ($this->application->get(SubscriberStreamerInterface::class))
+                    ->setChannelName($threadConfiguration["channelName"])
+                    ->setHandler($threadConfiguration["handler"])
+                    ->consume();
+
                 break;
             default:
                 throw new ThreadConfigurationException("unknown thread type");

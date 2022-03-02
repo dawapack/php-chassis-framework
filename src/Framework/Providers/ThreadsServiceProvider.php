@@ -5,32 +5,35 @@ declare(strict_types=1);
 namespace Chassis\Framework\Providers;
 
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
+use Chassis\Framework\Threads\ThreadInstance;
+use Chassis\Framework\Threads\ThreadInstanceInterface;
 use Chassis\Framework\Threads\ThreadsManager;
 use Chassis\Framework\Threads\ThreadsManagerInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use parallel\Events;
 use Psr\Log\LoggerInterface;
 
-class ThreadsManagerServiceProvider extends AbstractServiceProvider
+class ThreadsServiceProvider extends AbstractServiceProvider
 {
-    /**
-     * @param string $id
-     *
-     * @return bool
-     */
+
     public function provides(string $id): bool
     {
-        return $id === ThreadsManagerInterface::class;
+        $ids = [
+            ThreadInstanceInterface::class,
+            ThreadsManagerInterface::class
+        ];
+
+        return in_array($id, $ids);
     }
 
-    /**
-     * @return void
-     */
     public function register(): void
     {
-        // Instantiate ThreadsManager
-        $this->getContainer()
-            ->add(ThreadsManagerInterface::class, ThreadsManager::class)
+        $container = $this->getContainer();
+
+        $container->add(ThreadInstanceInterface::class, ThreadInstance::class)
+            ->setShared(false);
+
+        $container->add(ThreadsManagerInterface::class, ThreadsManager::class)
             ->addArguments([
                 ThreadsConfigurationInterface::class,
                 new Events(),

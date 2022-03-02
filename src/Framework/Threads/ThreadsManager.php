@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Threads;
 
-use Chassis\Framework\InterProcessCommunication\InterProcessCommunication;
+use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
+use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
@@ -12,6 +13,8 @@ use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
 use parallel\Events\Event\Type as EventType;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 
 use function Chassis\Helpers\app;
@@ -19,8 +22,6 @@ use function Chassis\Helpers\app;
 class ThreadsManager implements ThreadsManagerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "thread_manager_";
-    private const EVENTS_POOL_TIMEOUT_MS = 1;
-    private const LOOP_EACH_MS = 100;
 
     private ThreadsConfigurationInterface $threadsConfiguration;
     private Events $events;
@@ -49,15 +50,13 @@ class ThreadsManager implements ThreadsManagerInterface
      *
      * @return void
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function start(bool &$stopRequested): void
     {
         $this->threadsSetup();
-        $this->eventsSetup();
-
-        $startAt = microtime(true);
+        $this->events->setBlocking(false);
         do {
             if ($stopRequested) {
                 $this->stop();
@@ -65,9 +64,8 @@ class ThreadsManager implements ThreadsManagerInterface
             }
             // wait for threads event
             $this->eventsPoll();
-            // Wait a while - prevent CPU load
-            $this->loopWait(self::LOOP_EACH_MS, $startAt);
-            $startAt = microtime(true);
+            // wait a while, prevent CPU load
+            usleep(330000);
         } while (true);
     }
 
@@ -80,18 +78,19 @@ class ThreadsManager implements ThreadsManagerInterface
          * @var ThreadInstance $threadInstance
          */
         foreach ($this->threads as $threadInstance) {
-            (new InterProcessCommunication($threadInstance->getWorkerChannel(), null))
-                ->setMessage("abort")
-                ->send();
+            ($threadInstance->getWorkerChannel())
+                ->send(
+                    (new IPCMessage())
+                        ->set(ParallelChannels::METHOD_ABORT_REQUESTED)
+                        ->toArray()
+                );
         }
 
-        $startAt = microtime(true);
         do {
             // wait for threads event
             $this->eventsPoll();
-            // Wait a while - prevent CPU load
-            $this->loopWait(self::LOOP_EACH_MS, $startAt);
-            $startAt = microtime(true);
+            // wait a while, prevent CPU load
+            usleep(10000);
         } while (!empty($this->threads));
     }
 
@@ -120,8 +119,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function eventHandler(Event $event): void
     {
@@ -136,26 +135,37 @@ class ThreadsManager implements ThreadsManagerInterface
             return;
         }
 
-        // handle event
-        $threadId = str_replace(array("-worker", "-thread"), "", $event->source);
-        $channel = $this->threads[$threadId]->getThreadChannel();
-        $ipc = (new InterProcessCommunication($channel, $event))->handle();
-        if ($ipc->isRespawnRequested()) {
+        // get thread id from event
+        $threadId = $this->getThreadIdFromEventSource($event);
+        if (is_null($threadId)) {
+            return;
+        }
+        $messageMethod = (new IPCMessage($event->value))->getHeader("method");
+
+        // is respawn requested?
+        if ($messageMethod === ParallelChannels::METHOD_RESPAWN_REQUESTED) {
             $this->respawnThread($this->threads[$threadId]->getConfiguration());
         }
-        if ($ipc->isAborting() || $ipc->isRespawnRequested()) {
+
+        // finally, on aborting or respawn, remove thread from the list
+        if (
+            $messageMethod === ParallelChannels::METHOD_ABORTING
+            || $messageMethod === ParallelChannels::METHOD_RESPAWN_REQUESTED
+        ) {
             unset($this->threads[$threadId]);
             return;
         }
-        $this->events->addChannel($channel);
+        $this->events->addChannel(
+            $this->threads[$threadId]->getThreadChannel()
+        );
     }
 
     /**
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function threadsSetup(): void
     {
@@ -182,8 +192,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function spawnThread(ThreadConfiguration $threadConfiguration): void
     {
@@ -202,8 +212,8 @@ class ThreadsManager implements ThreadsManagerInterface
      * @return void
      *
      * @throws ThreadInstanceException
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected function respawnThread(array $configuration): void
     {
@@ -231,26 +241,17 @@ class ThreadsManager implements ThreadsManagerInterface
     }
 
     /**
-     * @return void
-     */
-    protected function eventsSetup(): void
-    {
-        // timeout must be in microseconds
-        $this->events->setBlocking(true);
-        $this->events->setTimeout(self::EVENTS_POOL_TIMEOUT_MS);
-    }
-
-    /**
-     * @param int $loopEach
-     * @param float $startAt
+     * @param Event $event
      *
-     * @return void
+     * @return string|null
      */
-    private function loopWait(int $loopEach, float $startAt): void
+    protected function getThreadIdFromEventSource(Event $event): ?string
     {
-        $loopWait = $loopEach - (round((microtime(true) - $startAt) * 1000));
-        if ($loopWait > 0) {
-            usleep(((int)$loopWait * 1000));
-        }
+        $threadId = str_replace(
+            array("-worker", "-thread"),
+            "",
+            $event->source
+        );
+        return isset($this->threads[$threadId]) ? $threadId : null;
     }
 }

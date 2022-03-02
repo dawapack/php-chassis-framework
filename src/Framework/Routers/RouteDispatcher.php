@@ -4,22 +4,29 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
+use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
+use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 
-use function Chassis\Helpers\publish;
+use function Chassis\Helpers\app;
 
 class RouteDispatcher implements RouteDispatcherInterface
 {
+    private Application $application;
+
     /**
      * @inheritdoc
      */
     public function dispatch($route, MessageBagInterface $message, RouterInterface $router)
     {
+        $this->application = app();
+
         // broker service resolver
         $service = $this->resolveRoute($route, $message);
         $response = $service["invokable"]
-            ? ($service["instance"])($message)
+            ? ($service["instance"])($message, $this->application)
             : $service["instance"]->{$service["method"]}();
 
         // return outbound router response
@@ -52,7 +59,7 @@ class RouteDispatcher implements RouteDispatcherInterface
         }
 
         list($service["class"], $service["method"]) = $route;
-        $service["instance"] = new $service["class"]($message);
+        $service["instance"] = new $service["class"]($message, $this->application);
 
         return $service;
     }
@@ -64,6 +71,9 @@ class RouteDispatcher implements RouteDispatcherInterface
      */
     protected function dispatchResponse(BrokerResponse $response): void
     {
-        publish($response);
+        /** @var PublisherStreamer $publisher */
+        $publisher = $this->application->get(PublisherStreamerInterface::class);
+        $publisher->publish($response);
+
     }
 }

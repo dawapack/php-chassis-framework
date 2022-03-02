@@ -16,12 +16,13 @@ interface BrokerOutboundAdapterInterface
      *
      * @return BrokerResponse|null
      */
-    public function send(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse;
+    public function push(MessageBagInterface $message, int $timeout = 30): ?BrokerResponse;
 
     /**
      * @param int $timeout
+     * @param MessageBagInterface|null $context
      *
      * @return BrokerResponse|null
      */
-    public function pull(int $timeout = 30): ?BrokerResponse;
+    public function pull(int $timeout = 30, ?MessageBagInterface $context = null): ?BrokerResponse;
 }

@@ -37,7 +37,7 @@ interface PublisherStreamerInterface
     public function setNackHandler(AckNackHandlerInterface $nackHandler): PublisherStreamerInterface;
 
     /**
-     * @param MessageBagInterface $messageBag
+     * @param MessageBagInterface $message
      * @param string $channelName
      * @param int|float $publishAcknowledgeTimeout
      *
@@ -45,7 +45,7 @@ interface PublisherStreamerInterface
      * @throws StreamerChannelClosedException
      */
     public function publish(
-        MessageBagInterface $messageBag,
+        MessageBagInterface $message,
         string $channelName = "",
         $publishAcknowledgeTimeout = 5
     ): void;

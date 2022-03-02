@@ -25,15 +25,14 @@ class BrokerAbstractService implements ServiceInterface
 
     /**
      * @param MessageBagInterface $message
-     *
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
+     * @param Application $application
      */
     public function __construct(
-        MessageBagInterface $message
+        MessageBagInterface $message,
+        Application $application
     ) {
         $this->message = $message;
-        $this->app = app();
+        $this->app = $application;
     }
 
     public function response($body = []): BrokerResponse

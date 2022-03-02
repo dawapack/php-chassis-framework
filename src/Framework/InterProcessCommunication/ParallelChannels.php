@@ -90,8 +90,8 @@ class ParallelChannels implements ChannelsInterface
      */
     public function isAborting(): bool
     {
-        if (isset($this->message) && ($this->message instanceof IPCMessage)) {
-            return $this->message->headers->method === self::METHOD_ABORTING;
+        if (!is_null($this->getMessage())) {
+            return $this->message->getHeader("method") === self::METHOD_ABORTING;
         }
         return false;
     }
@@ -101,8 +101,8 @@ class ParallelChannels implements ChannelsInterface
      */
     public function isAbortRequested(): bool
     {
-        if (isset($this->message) && ($this->message instanceof IPCMessage)) {
-            return $this->message->headers->method === self::METHOD_ABORT_REQUESTED;
+        if (!is_null($this->getMessage())) {
+            return $this->message->getHeader("method") === self::METHOD_ABORT_REQUESTED;
         }
         return false;
     }
@@ -112,8 +112,8 @@ class ParallelChannels implements ChannelsInterface
      */
     public function isRespawnRequested(): bool
     {
-        if (isset($this->message) && ($this->message instanceof IPCMessage)) {
-            return $this->message->headers->method === self::METHOD_RESPAWN_REQUESTED;
+        if (!is_null($this->getMessage())) {
+            return $this->message->getHeader("method") === self::METHOD_RESPAWN_REQUESTED;
         }
         return false;
     }
@@ -179,6 +179,9 @@ class ParallelChannels implements ChannelsInterface
             );
             return;
         }
+        // clear previous message
+        unset($this->message);
+        // save event value as message
         $this->message = new IPCMessage($event->value);
         $this->events->addChannel($this->getListenedChannel());
     }

@@ -8,12 +8,15 @@ use Chassis\Application;
 use Chassis\Framework\Threads\ThreadsManagerInterface;
 use Chassis\Framework\Workers\WorkerInterface;
 use Chassis\Helpers\Pcntl\PcntlSignals;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 
 class Kernel implements KernelInterface
 {
+    protected const LOGGER_COMPONENT_PREFIX = "kernel_";
+
     private Application $app;
-    private string $loggerComponent = "kernel_" . RUNNER_TYPE;
     private bool $stopRequested = false;
 
     /**
@@ -32,39 +35,32 @@ class Kernel implements KernelInterface
      */
     public function boot(): void
     {
-        if (RUNNER_TYPE === "worker") {
+        if ($this->app->isWorker()) {
             ($this->app->get(WorkerInterface::class))->start();
-        } elseif (RUNNER_TYPE === "daemon") {
+        } elseif ($this->app->isDaemon()) {
             ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
         }
     }
 
     /**
      * @param int $signalNumber
-     * @param $signalInfo
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    public function signalHandler(int $signalNumber, $signalInfo): void
+    public function signalHandler(int $signalNumber): void
     {
         $this->stopRequested = true;
         if ($signalNumber === PcntlSignals::SIGTERM) {
             return;
         }
-        $this->logger()->alert(
-            "exit on trapped signal",
+        $this->app->logger()->alert(
+            "exit on unhandled signal",
             [
-                "component" => $this->loggerComponent,
-                "extra" => ["signal" => PcntlSignals::$toSignalName[$signalNumber]]
+                "component" => self::LOGGER_COMPONENT_PREFIX . RUNNER_TYPE,
+                "signal" => PcntlSignals::$toSignalName[$signalNumber]
             ]
         );
-    }
-
-
-    /**
-     * @inheritDoc
-     */
-    public function logger(): LoggerInterface
-    {
-        return $this->app->logger();
     }
 
     /**

@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2022-03-01
+
+### Added
+
+- Cleanup unused functions, classes and methods
+- Inbound & outbound routing improvements
+- Remove broker helpers
+- Inter process communication improvements
+- Kernel boot optimisation
+- Sync over async - nack message if is not for a given context
+
 ## [0.4.0] - 2022-02-27
 
 ### Added
