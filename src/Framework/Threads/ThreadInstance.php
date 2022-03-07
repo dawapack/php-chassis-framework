@@ -8,6 +8,8 @@ use Chassis\Application;
 use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Kernel;
+use Chassis\Framework\OutboundAdapters\Cache\CacheFactory;
+use Chassis\Framework\OutboundAdapters\Cache\CacheFactoryInterface;
 use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
@@ -150,8 +152,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     array $threadConfiguration,
                     Channel $workerChannel,
                     Channel $threadChannel,
-                    InboundRouterInterface $inboundRouter,
-                    OutboundRouterInterface $outboundRouter
+                    $daemonApp
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -171,15 +172,21 @@ class ThreadInstance implements ThreadInstanceInterface
                     $channels->setWorkerChannel($workerChannel, true);
                     $channels->setThreadChannel($threadChannel);
 
-                    // Add aliases, config, ...
+                    // aliases, config, ...
                     $app->add('threadConfiguration', $threadConfiguration);
                     $app->add('threadId', $threadId);
                     $app->withConfig("threads");
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([$app, ChannelsInterface::class]);
-                    $app->add(InboundRouterInterface::class, $inboundRouter);
-                    $app->add(OutboundRouterInterface::class, $outboundRouter);
+
+                    // inbound adapters
+                    $app->add(InboundRouterInterface::class, $daemonApp->get(InboundRouterInterface::class));
+
+                    // outbound adapters
+                    $app->add(OutboundRouterInterface::class, $daemonApp->get(OutboundRouterInterface::class));
+                    $app->add(CacheFactoryInterface::class, CacheFactory::class)
+                        ->addArgument($app->get('config')->get('cache'));
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
@@ -190,8 +197,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
                     $this->threadChannel,
-                    app(InboundRouterInterface::class),
-                    app(OutboundRouterInterface::class)
+                    app()
                 ]
             );
         } catch (Throwable $reason) {

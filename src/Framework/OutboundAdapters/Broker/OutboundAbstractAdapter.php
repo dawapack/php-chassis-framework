@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework\OutboundAdapters;
+namespace Chassis\Framework\OutboundAdapters\Broker;
 
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerRequest;
@@ -11,12 +11,12 @@ use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
+use Chassis\Framework\OutboundAdapters\BrokerOutboundAdapterInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
-use function Chassis\Helpers\app;
 
 class OutboundAbstractAdapter implements BrokerOutboundAdapterInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework\OutboundAdapters;
+namespace Chassis\Framework\OutboundAdapters\Broker;
 
 use Chassis\Application;
 use Chassis\Framework\Brokers\Amqp\BrokerResponse;
