@@ -142,6 +142,9 @@ class RedisConnector implements ConnectorInterface
 
         if (strtolower($this->getDriver()) === "redis") {
             $this->client = new Redis();
+
+            var_dump($this->toRedisClientConnectArguments());
+
             if (!$this->client->connect(...$this->toRedisClientConnectArguments())) {
                 throw new ServerConnectionException("unable to connect to the cache server");
             }
