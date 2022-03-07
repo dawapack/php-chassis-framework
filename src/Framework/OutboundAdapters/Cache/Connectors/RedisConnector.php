@@ -39,7 +39,6 @@ class RedisConnector implements ConnectorInterface
     {
         $this->configuration = $configuration;
         $this->setPrefix();
-        $this->connect();
     }
 
     /**
@@ -55,6 +54,7 @@ class RedisConnector implements ConnectorInterface
      */
     public function getImplementation(): CacheItemPoolInterface
     {
+        !isset($this->client) && $this->connect();
         $implementation = $this->implementations[$this->getDriver()];
         return new $implementation($this->client());
     }
@@ -64,6 +64,7 @@ class RedisConnector implements ConnectorInterface
      */
     public function client()
     {
+        !isset($this->client) && $this->connect();
         return $this->client;
     }
 
