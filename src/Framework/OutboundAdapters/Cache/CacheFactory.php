@@ -20,6 +20,8 @@ class CacheFactory implements CacheFactoryInterface
     public function __construct(array $cacheConfiguration)
     {
         $this->cacheConfiguration = $cacheConfiguration;
+
+        var_dump([__METHOD__, $this->cacheConfiguration]);
     }
 
     /**
