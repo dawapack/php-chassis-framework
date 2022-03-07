@@ -15,5 +15,5 @@ interface CacheFactoryInterface
      * @throws CachePoolImplementationException
      * @throws ServerConnectionException
      */
-    public function get(): CachePoolImplementationInterface;
+    public function build(): CachePoolImplementationInterface;
 }

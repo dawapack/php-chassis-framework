@@ -142,9 +142,6 @@ class RedisConnector implements ConnectorInterface
 
         if (strtolower($this->getDriver()) === "redis") {
             $this->client = new Redis();
-
-            var_dump([__METHOD__, $this->toRedisClientConnectArguments()]);
-
             if (!$this->client->connect(...$this->toRedisClientConnectArguments())) {
                 throw new ServerConnectionException("unable to connect to the cache server");
             }
@@ -194,14 +191,14 @@ class RedisConnector implements ConnectorInterface
                 'host' => $server["host"],
                 'port' => $server["port"],
             ],
-//            array_merge(
-//                $this->getOptions(),
-//                [
-//                    'timeout' => $this->getTimeout(),
-//                    'retry_interval' => $this->getRetryInterval(),
-//                    'read_write_timeout' => $this->getReadTimeout(),
-//                ]
-//            )
+            array_merge(
+                $this->getOptions(),
+                [
+                    'timeout' => $this->getTimeout(),
+                    'retry_interval' => $this->getRetryInterval(),
+                    'read_write_timeout' => $this->getReadTimeout(),
+                ]
+            )
         ];
     }
 }
