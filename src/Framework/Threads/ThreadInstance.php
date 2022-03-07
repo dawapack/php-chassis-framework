@@ -187,9 +187,12 @@ class ThreadInstance implements ThreadInstanceInterface
 
                     // outbound adapters
                     $app->add(OutboundRouterInterface::class, $outboundRouter);
+
                     $app->withConfig("cache");
-                    $app->add(CacheFactoryInterface::class, CacheFactory::class)
-                        ->addArgument($app->get('config')->get('cache'));
+                    var_dump([__METHOD__, $app->get('config')->get('cache')]);
+
+//                    $app->add(CacheFactoryInterface::class, CacheFactory::class)
+//                        ->addArgument($app->get('config')->get('cache'));
 
                     var_dump([__METHOD__, $app->get('config')->get('cache')]);
 
