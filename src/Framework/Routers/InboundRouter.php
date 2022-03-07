@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Chassis\Framework\Routers;
 
 use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
-use Chassis\Framework\OutboundAdapters\RouteNotFound;
+use Chassis\Framework\OutboundAdapters\Broker\RouteNotFound;
 
 class InboundRouter implements RouterInterface, InboundRouterInterface
 {
