@@ -152,7 +152,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     array $threadConfiguration,
                     Channel $workerChannel,
                     Channel $threadChannel,
-                    $daemonApp
+                    $inboundRouter,
+                    $outboundRouter
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -181,10 +182,10 @@ class ThreadInstance implements ThreadInstanceInterface
                         ->addArguments([$app, ChannelsInterface::class]);
 
                     // inbound adapters
-                    $app->add(InboundRouterInterface::class, $daemonApp->get(InboundRouterInterface::class));
+                    $app->add(InboundRouterInterface::class, $inboundRouter);
 
                     // outbound adapters
-                    $app->add(OutboundRouterInterface::class, $daemonApp->get(OutboundRouterInterface::class));
+                    $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(CacheFactoryInterface::class, CacheFactory::class)
                         ->addArgument($app->get('config')->get('cache'));
 
@@ -197,7 +198,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
                     $this->threadChannel,
-                    app()
+                    app(InboundRouterInterface::class),
+                    app(OutboundRouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {
