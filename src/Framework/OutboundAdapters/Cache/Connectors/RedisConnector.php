@@ -190,11 +190,15 @@ class RedisConnector implements ConnectorInterface
                 'scheme' => $server["scheme"],
                 'host' => $server["host"],
                 'port' => $server["port"],
-                'timeout' => $this->getTimeout(),
-                'retry_interval' => $this->getRetryInterval(),
-                'read_timeout' => $this->getReadTimeout(),
             ],
-            $this->getOptions()
+            array_merge(
+                $this->getOptions(),
+                [
+                    'timeout' => $this->getTimeout(),
+                    'retry_interval' => $this->getRetryInterval(),
+                    'read_write_timeout' => $this->getReadTimeout(),
+                ]
+            )
         ];
     }
 }
