@@ -226,7 +226,7 @@ class Application extends Container
             $this->logger(),
             $this->basePath,
             ['app']
-        ));
+        ))->setShared(false);
 
         // Add paths
         $this->add('basePath', $this->basePath);
