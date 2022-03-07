@@ -177,6 +177,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->add('threadConfiguration', $threadConfiguration);
                     $app->add('threadId', $threadId);
                     $app->withConfig("threads");
+                    $app->withConfig("cache");
                     $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([$app, ChannelsInterface::class]);
@@ -188,6 +189,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(CacheFactoryInterface::class, CacheFactory::class)
                         ->addArgument($app->get('config')->get('cache'));
+
+                    var_dump([__METHOD__, $app->get('config')->get('cache')]);
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
