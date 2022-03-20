@@ -26,7 +26,6 @@ class CacheFactory implements CacheFactoryInterface
      * @return CachePoolImplementationInterface
      *
      * @throws CachePoolImplementationException
-     * @throws ServerConnectionException
      */
     public function build(): CachePoolImplementationInterface
     {

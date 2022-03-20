@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
-use Chassis\Framework\Brokers\Amqp\BrokerResponse;
-use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Adapters\Message\InboundMessageInterface;
+use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 use Chassis\Framework\Routers\Exceptions\RouteNotFoundException;
 
-class OutboundRouter implements RouterInterface, OutboundRouterInterface
+class OutboundRouter implements OutboundRouterInterface
 {
     private RouteDispatcherInterface $dispatcher;
     private array $routes;
@@ -21,18 +21,28 @@ class OutboundRouter implements RouterInterface, OutboundRouterInterface
         RouteDispatcherInterface $dispatcher,
         array $routes
     ) {
-        $this->routes = $routes;
         $this->dispatcher = $dispatcher;
+        $this->routes = $routes;
     }
 
     /**
      * @inheritDoc
      */
-    public function route(string $route, MessageBagInterface $message): ?BrokerResponse
-    {
-        if (!isset($this->routes[$route])) {
+    public function route(
+        ?string $operation,
+        OutboundMessageInterface $message,
+        InboundMessageInterface $context = null
+    ): ?InboundMessageInterface {
+        // active rpc handler - respond using context
+        if ($context instanceof InboundMessageInterface) {
+            return $this->dispatcher->dispatchResponse($message, $context);
+        }
+
+        // is route not found?
+        if (!isset($this->routes[$operation])) {
             throw new RouteNotFoundException("route not found");
         }
-        return $this->dispatcher->dispatch($this->routes[$route], $message, $this);
+
+        return $this->dispatcher->dispatch($this->routes[$operation], $message);
     }
 }

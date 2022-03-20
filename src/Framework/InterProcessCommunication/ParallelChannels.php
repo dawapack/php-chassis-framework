@@ -11,9 +11,8 @@ use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
 use parallel\Events\Event\Type as EventType;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
-class ParallelChannels implements ChannelsInterface
+class ParallelChannels implements IPCChannelsInterface
 {
     public const METHOD_ABORTING = 'aborting';
     public const METHOD_ABORT_REQUESTED = 'abort';
@@ -137,7 +136,7 @@ class ParallelChannels implements ChannelsInterface
     /**
      * @inheritDoc
      */
-    public function sendTo(Channel $channel, IPCMessage $message): ChannelsInterface
+    public function sendTo(Channel $channel, IPCMessage $message): IPCChannelsInterface
     {
         $channel->send($message->toArray());
 

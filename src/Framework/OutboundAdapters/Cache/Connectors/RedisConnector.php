@@ -32,8 +32,6 @@ class RedisConnector implements ConnectorInterface
 
     /**
      * @param array $configuration
-     *
-     * @throws ServerConnectionException
      */
     public function __construct(array $configuration)
     {

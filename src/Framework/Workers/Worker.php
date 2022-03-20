@@ -5,54 +5,64 @@ declare(strict_types=1);
 namespace Chassis\Framework\Workers;
 
 use Chassis\Application;
-use Chassis\Framework\Brokers\Amqp\Streamers\InfrastructureStreamer;
-use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
-use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
+use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
 use Chassis\Framework\Brokers\Exceptions\StreamerChannelIterateMaxRetryException;
-use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
+use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
+use Chassis\Framework\Bus\SetupBusInterface;
+use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
-
-use function Chassis\Helpers\subscribe;
 
 class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
-    private const SUBSCRIBER_ITERATE_MAX_RETRY = 5;
+    private const BUS_POOL_MAX_RETRY = 5;
 
     private Application $application;
-    private ChannelsInterface $channels;
-    private SubscriberStreamer $subscriberStreamer;
+    private IPCChannelsInterface $ipcChannels;
+    private InboundBusAdapterInterface $inboundBusAdapter;
+    private SetupBusInterface $bus;
     private int $iterateRetry = 0;
 
     /**
      * @param Application $application
-     * @param ChannelsInterface $channels
+     * @param IPCChannelsInterface $ipcChannels
+     * @param InboundBusAdapterInterface $inboundBusAdapter
+     * @param SetupBusInterface $setupBus
      */
     public function __construct(
         Application $application,
-        ChannelsInterface $channels
+        IPCChannelsInterface $ipcChannels,
+        InboundBusAdapterInterface $inboundBusAdapter,
+        SetupBusInterface $bus
     ) {
         $this->application = $application;
-        $this->channels = $channels;
+        $this->ipcChannels = $ipcChannels;
+        $this->inboundBusAdapter = $inboundBusAdapter;
+        $this->bus = $bus;
     }
 
     /**
      * @return void
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function start(): void
     {
         try {
-            $this->subscriberSetup();
+            $this->setup();
             do {
-                // IPC channel event poll
-                if (!$this->polling()) {
+                // IPC channel event pooling
+                if (!$this->ipcPooling()) {
                     break;
                 }
-                // subscriber streamer iterate
-                $this->subscriberIterate();
+                // bus adapter pooling
+                $this->busPooling();
             } while (true);
         } catch (Throwable $reason) {
             // log this error & request respawning
@@ -63,32 +73,27 @@ class Worker implements WorkerInterface
                     'error' => $reason
                 ]
             );
-            $this->channels->sendTo(
-                $this->channels->getThreadChannel(),
+            $this->ipcChannels->sendTo(
+                $this->ipcChannels->getThreadChannel(),
                 (new IPCMessage())->set(ParallelChannels::METHOD_RESPAWN_REQUESTED)
             );
-        }
-
-        // Close subscriber streamer channel
-        if (isset($this->subscriberStreamer)) {
-            $this->subscriberStreamer->closeChannel();
         }
     }
 
     /**
      * @return bool
      */
-    protected function polling(): bool
+    protected function ipcPooling(): bool
     {
         // channel events pool
-        $this->channels->eventsPoll();
-        if (!$this->channels->isAbortRequested()) {
+        $this->ipcChannels->eventsPoll();
+        if (!$this->ipcChannels->isAbortRequested()) {
             return true;
         }
 
         // send aborting message to thread manager
-        $this->channels->sendTo(
-            $this->channels->getThreadChannel(),
+        $this->ipcChannels->sendTo(
+            $this->ipcChannels->getThreadChannel(),
             (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
         );
 
@@ -97,23 +102,18 @@ class Worker implements WorkerInterface
 
     /**
      * @return void
+     *
      * @throws StreamerChannelIterateMaxRetryException
      */
-    protected function subscriberIterate(): void
+    protected function busPooling(): void
     {
         try {
-            if (!isset($this->subscriberStreamer)) {
-                // threads without subscriber need to wait more
-                usleep(500000);
-                return;
-            }
-            $this->subscriberStreamer->iterate();
+            $this->inboundBusAdapter->pool();
             $this->iterateRetry = 0;
-
         } catch (Throwable $reason) {
             // retry pattern
             $this->iterateRetry++;
-            if ($this->iterateRetry >= self::SUBSCRIBER_ITERATE_MAX_RETRY) {
+            if ($this->iterateRetry >= self::BUS_POOL_MAX_RETRY) {
                 throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
             }
             // wait before retry
@@ -123,16 +123,19 @@ class Worker implements WorkerInterface
 
     /**
      * @return void
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     *
+     * @throws ThreadConfigurationException
+     * @throws StreamerChannelNameNotFoundException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    protected function subscriberSetup(): void
+    protected function setup(): void
     {
         $threadConfiguration = $this->application->get('threadConfiguration');
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
-                // Broker channels setup
-                (new InfrastructureStreamer($this->application))->brokerChannelsSetup();
+                // message bus setup
+                $this->bus->setup();
                 break;
             case "configuration":
                 // TODO: implement configuration listener - (centralized configuration server feature)
@@ -140,12 +143,7 @@ class Worker implements WorkerInterface
             case "worker":
                 // wait a while - infrastructure must declare exchanges, queues & bindings
                 usleep(rand(2500000, 4000000));
-                // create subscriber
-                $this->subscriberStreamer = ($this->application->get(SubscriberStreamerInterface::class))
-                    ->setChannelName($threadConfiguration["channelName"])
-                    ->setHandler($threadConfiguration["handler"])
-                    ->consume();
-
+                $this->inboundBusAdapter->subscribe($threadConfiguration["channelName"]);
                 break;
             default:
                 throw new ThreadConfigurationException("unknown thread type");

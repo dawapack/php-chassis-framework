@@ -18,7 +18,7 @@ use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamer;
 use Chassis\Framework\Brokers\Amqp\Streamers\SubscriberStreamerInterface;
 use Chassis\Framework\Configuration\Configuration;
-use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
+use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Logger\LoggerApplicationContext;
 use Chassis\Framework\Logger\LoggerApplicationContextInterface;
@@ -164,7 +164,7 @@ class Application extends Container
         $this->add(ThreadsConfigurationInterface::class, ThreadsConfiguration::class)
             ->addArgument($this->get("config")->get("threads"));
 
-        $this->add(ChannelsInterface::class, ParallelChannels::class)
+        $this->add(IPCChannelsInterface::class, ParallelChannels::class)
             ->addArguments([new Events(), LoggerInterface::class])
             ->setShared(false);
 

@@ -40,7 +40,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Chassis\\Tests\\": "tests/"
+      "ChassisTests\\": "tests/"
     },
     "files": [
       "src/Helpers/collections.php",

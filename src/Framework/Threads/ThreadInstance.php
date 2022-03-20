@@ -5,7 +5,27 @@ declare(strict_types=1);
 namespace Chassis\Framework\Threads;
 
 use Chassis\Application;
-use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
+use Chassis\Framework\Adapters\Inbound\InboundBusAdapter;
+use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
+use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
+use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
+use Chassis\Framework\AsyncApi\AsyncContract;
+use Chassis\Framework\AsyncApi\AsyncContractInterface;
+use Chassis\Framework\AsyncApi\ContractParser;
+use Chassis\Framework\AsyncApi\ContractValidator;
+use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
+use Chassis\Framework\AsyncApi\TransformersInterface;
+use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
+use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
+use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
+use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
+use Chassis\Framework\Bus\AMQP\Outbound\AMQPOutboundBus;
+use Chassis\Framework\Bus\AMQP\Setup\AMQPSetup;
+use Chassis\Framework\Bus\InboundBusInterface;
+use Chassis\Framework\Bus\MessageBusInterface;
+use Chassis\Framework\Bus\OutboundBusInterface;
+use Chassis\Framework\Bus\SetupBusInterface;
+use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Kernel;
 use Chassis\Framework\OutboundAdapters\Cache\CacheFactory;
@@ -16,11 +36,14 @@ use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
 use Chassis\Framework\Workers\Worker;
 use Chassis\Framework\Workers\WorkerInterface;
+use Opis\JsonSchema\Validator;
 use parallel\Channel;
 use parallel\Channel\Error\Existence;
 use parallel\Events;
 use parallel\Future;
 use parallel\Runtime;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
@@ -118,6 +141,8 @@ class ThreadInstance implements ThreadInstanceInterface
      * @param int $capacity
      *
      * @return Channel|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function createChannel(string $name, int $capacity): ?Channel
     {
@@ -137,7 +162,11 @@ class ThreadInstance implements ThreadInstanceInterface
     }
 
     /**
+     * @param string $threadId
+     *
      * @return Future|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function createFuture(string $threadId): ?Future
     {
@@ -162,14 +191,14 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app = require $basePath . '/bootstrap/app.php';
 
                     // IPC setup
-                    $app->add(ChannelsInterface::class, ParallelChannels::class)
+                    $app->add(IPCChannelsInterface::class, ParallelChannels::class)
                         ->addArguments([new Events(), LoggerInterface::class]);
                     /**
                      * Add channels to IPC instance
                      *
                      * @var ParallelChannels $channels
                      */
-                    $channels = $app->get(ChannelsInterface::class);
+                    $channels = $app->get(IPCChannelsInterface::class);
                     $channels->setWorkerChannel($workerChannel, true);
                     $channels->setThreadChannel($threadChannel);
 
@@ -177,16 +206,34 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->add('threadConfiguration', $threadConfiguration);
                     $app->add('threadId', $threadId);
                     $app->withConfig("threads");
+                    $app->withConfig("broker");
                     $app->withConfig("cache");
-                    $app->withBroker(true);
                     $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([$app, ChannelsInterface::class]);
+                        ->addArguments([$app, IPCChannelsInterface::class]);
 
+                    // general adapters
+                    $app->add(AMQPConnectorInterface::class, AMQPConnector::class);
+                    $app->add(TransformersInterface::class, AMQPTransformer::class);
+                    $app->add(MessageBusInterface::class, AMQPMessageBus::class);
+                    $app->add(InboundBusInterface::class, AMQPInboundBus::class);
+                    $app->add(OutboundBusInterface::class, AMQPOutboundBus::class);
+                    $app->add(SetupBusInterface::class, AMQPSetup::class);
+                    $app->add(AsyncContractInterface::class, function ($configuration, $transformer) {
+                        return (new AsyncContract(
+                            new ContractParser(),
+                            new ContractValidator(
+                                new Validator()
+                            )
+                        ))->setConfiguration($configuration)
+                            ->pushTransformer($transformer);
+                    })->addArguments([$app->get('config')->get('broker'), TransformersInterface::class]);
 
                     // inbound adapters
+                    $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class);
                     $app->add(InboundRouterInterface::class, $inboundRouter);
 
                     // outbound adapters
+                    $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class);
                     $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(CacheFactoryInterface::class, function ($configuration) {
                         return (new CacheFactory($configuration))->build();

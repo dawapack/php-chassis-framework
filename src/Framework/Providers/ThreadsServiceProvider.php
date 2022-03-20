@@ -15,7 +15,6 @@ use Psr\Log\LoggerInterface;
 
 class ThreadsServiceProvider extends AbstractServiceProvider
 {
-
     public function provides(string $id): bool
     {
         $ids = [

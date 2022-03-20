@@ -5,75 +5,73 @@ declare(strict_types=1);
 namespace Chassis\Framework\Routers;
 
 use Chassis\Application;
-use Chassis\Framework\Brokers\Amqp\BrokerResponse;
-use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
-use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamer;
-use Chassis\Framework\Brokers\Amqp\Streamers\PublisherStreamerInterface;
-
-use function Chassis\Helpers\app;
+use Chassis\Framework\Adapters\Message\InboundMessageInterface;
+use Chassis\Framework\Adapters\Message\MessageInterface;
+use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
+use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
+use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
 
 class RouteDispatcher implements RouteDispatcherInterface
 {
     private Application $application;
+    private OutboundBusAdapterInterface $outboundBusAdapter;
+
+    /**
+     * @param Application $application
+     * @param OutboundBusAdapterInterface $outboundBusAdapter
+     */
+    public function __construct(
+        Application $application,
+        OutboundBusAdapterInterface $outboundBusAdapter
+    ) {
+        $this->application = $application;
+        $this->outboundBusAdapter = $outboundBusAdapter;
+    }
 
     /**
      * @inheritdoc
      */
-    public function dispatch($route, MessageBagInterface $message, RouterInterface $router)
+    public function dispatch($service, MessageInterface $message)
     {
-        $this->application = app();
-
-        // broker service resolver
-        $service = $this->resolveRoute($route, $message);
-        $response = $service["invokable"]
-            ? ($service["instance"])($message, $this->application)
-            : $service["instance"]->{$service["method"]}();
-
-        // return outbound router response
-        if ($router instanceof OutboundRouter) {
-            return $response;
-        }
-
-        // dispatch inbound router response if any
-        if ($response instanceof BrokerResponse) {
-            $this->dispatchResponse($response);
-        }
-
-        return null;
+        // service resolver
+        $resolvedService = $this->serviceResolver($service, $message);
+        return $resolvedService->invokable
+            ? ($resolvedService->instance)($message, $this->application)
+            : $resolvedService->instance->{$resolvedService->method}();
     }
 
     /**
-     * @param array|string $route
-     * @param MessageBagInterface $message
-     *
-     * @return array
+     * @inheritdoc
      */
-    protected function resolveRoute($route, MessageBagInterface $message): array
+    public function dispatchResponse(OutboundMessageInterface $message, InboundMessageInterface $context)
     {
-        $service = ['invokable' => false];
-        if (is_string($route)) {
-            $service["invokable"] = true;
-            $service["instance"] = new $route();
-
-            return $service;
-        }
-
-        list($service["class"], $service["method"]) = $route;
-        $service["instance"] = new $service["class"]($message, $this->application);
-
-        return $service;
+        return $this->outboundBusAdapter->pushResponse($message, $context);
     }
 
     /**
-     * @param BrokerResponse $response
+     * @param array|string $service
+     * @param MessageInterface $message
      *
-     * @return void
+     * @return object
      */
-    protected function dispatchResponse(BrokerResponse $response): void
+    protected function serviceResolver($service, MessageInterface $message): object
     {
-        /** @var PublisherStreamer $publisher */
-        $publisher = $this->application->get(PublisherStreamerInterface::class);
-        $publisher->publish($response);
+        $resolvedService = (object)[
+            'invokable' => false,
+            'instance' => null,
+            'class' => null,
+            'method' => null,
+        ];
+        if (is_string($service)) {
+            $resolvedService->invokable = true;
+            $resolvedService->instance = new $service();
 
+            return $resolvedService;
+        }
+
+        list($resolvedService->class, $resolvedService->method) = $service;
+        $resolvedService->instance = new $resolvedService->class($message, $this->application);
+
+        return $resolvedService;
     }
 }

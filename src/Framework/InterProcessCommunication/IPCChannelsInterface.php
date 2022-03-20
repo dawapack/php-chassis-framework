@@ -7,7 +7,7 @@ namespace Chassis\Framework\InterProcessCommunication;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
 use parallel\Channel;
 
-interface ChannelsInterface
+interface IPCChannelsInterface
 {
     /**
      * @param Channel $channel
