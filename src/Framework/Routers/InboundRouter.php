@@ -10,29 +10,27 @@ use Chassis\Framework\OutboundAdapters\Broker\RouteNotFound;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
+use function Chassis\Helpers\app;
+
 class InboundRouter implements InboundRouterInterface
 {
     private const LOGGER_COMPONENT_PREFIX = 'inbound_router_';
 
     private RouteDispatcherInterface $dispatcher;
-    private OutboundRouterInterface $outboundRouter;
     private LoggerInterface $logger;
     private array $routes;
 
     /**
      * @param RouteDispatcherInterface $dispatcher
-     * @param OutboundRouterInterface $outboundRouter
      * @param LoggerInterface $logger
      * @param array $routes
      */
     public function __construct(
         RouteDispatcherInterface $dispatcher,
-        OutboundRouterInterface $outboundRouter,
         LoggerInterface $logger,
         array $routes
     ) {
         $this->dispatcher = $dispatcher;
-        $this->outboundRouter = $outboundRouter;
         $this->logger = $logger;
         $this->routes = $routes;
     }
@@ -47,7 +45,9 @@ class InboundRouter implements InboundRouterInterface
 
         try {
             if ($response instanceof OutboundMessageInterface) {
-                $this->outboundRouter->route(null, $response, $message);
+                /** @var OutboundRouterInterface $outboundRouter */
+                $outboundRouter = app(OutboundRouterInterface::class);
+                $outboundRouter->route(null, $response, $message);
             }
         } catch (Throwable $reason) {
             $this->logger->error(
