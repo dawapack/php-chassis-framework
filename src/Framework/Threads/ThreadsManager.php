@@ -181,11 +181,10 @@ class ThreadsManager implements ThreadsManagerInterface
         $workersConfiguration = $this->threadsConfiguration->getThreadConfiguration('worker');
         if ($workersConfiguration->enabled) {
             foreach ($workersConfiguration->channels as $channel) {
-                var_dump($channel);
-//                if (!$channel->enabled) {
+                if ($channel["enabled"] !== true) {
                     continue;
-//                }
-//                $this->spawnThread(new ThreadConfiguration($channel));
+                }
+                $this->spawnThread(new ThreadConfiguration($channel));
             }
         }
     }
