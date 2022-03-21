@@ -60,9 +60,7 @@ class AMQPTransformer implements TransformersInterface
         'exclusive' => false,
         'autoDelete' => false,
         'nowait' => false,
-        'arguments' => [
-            'x-max-priority' => 5,
-        ],
+        'arguments' => [],
         'ticket' => null
     ];
 
@@ -149,11 +147,12 @@ class AMQPTransformer implements TransformersInterface
      */
     public function toQueueDeclareArguments(array $options, bool $onlyValues = true): array
     {
-
-        var_dump([__METHOD__, $this->channelBindings]);
-
         $arguments = array_merge(
             $this->queueDeclareOptions,
+            array_intersect_key(
+                (array)$this->channelBindings,
+                $this->queueDeclareOptions
+            ),
             array_intersect_key(
                 $options,
                 $this->queueDeclareOptions
