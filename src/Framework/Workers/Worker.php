@@ -55,9 +55,6 @@ class Worker implements WorkerInterface
     public function start(): void
     {
         try {
-
-            var_dump([__METHOD__, "starting worker"]);
-
             $this->setup();
             do {
                 // IPC channel event pooling

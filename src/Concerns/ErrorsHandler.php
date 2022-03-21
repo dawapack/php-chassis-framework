@@ -37,6 +37,8 @@ trait ErrorsHandler
         register_shutdown_function(function () {
             $this->handleShutdown();
         });
+
+        pcntl_async_signals(true);
     }
 
     /**

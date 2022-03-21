@@ -19,6 +19,7 @@ use Chassis\Framework\AsyncApi\ContractParser;
 use Chassis\Framework\AsyncApi\ContractValidator;
 use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
 use Chassis\Framework\AsyncApi\TransformersInterface;
+use Chassis\Framework\BootstrapBag;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
 use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
@@ -180,123 +181,30 @@ class ThreadInstance implements ThreadInstanceInterface
     {
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
-            $basePath = app('basePath');
+            $bootstrapBag = BootstrapBag::factory()
+                ->with('basePath', app('basePath'))
+                ->with('threadId', $threadId)
+                ->with('threadConfiguration', $this->threadConfiguration->toArray())
+                ->with('workerChannel', $this->workerChannel)
+                ->with('threadChannel', $this->threadChannel)
+                ->with('inboundRouter', app(InboundRouterInterface::class))
+                ->with('outboundRouter', app(OutboundRouterInterface::class));
+
             // Create parallel future
-            return (new Runtime($basePath . "/vendor/autoload.php"))->run(
-                static function (
-                    string $basePath,
-                    string $threadId,
-                    array $threadConfiguration,
-                    Channel $workerChannel,
-                    Channel $threadChannel,
-                    $inboundRouter,
-                    $outboundRouter
-                ): void {
+            return (new Runtime($bootstrapBag->basePath . "/vendor/autoload.php"))->run(
+                static function (BootstrapBag $bootstrapBag): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
 
+                    // create singleton - clone function argument
+                    BootstrapBag::factory($bootstrapBag);
+
                     /** @var Application $app */
-                    $app = require $basePath . '/bootstrap/app.php';
-
-                    // IPC setup
-                    $app->add(IPCChannelsInterface::class, ParallelChannels::class)
-                        ->addArguments([new Events(), LoggerInterface::class]);
-
-                    var_dump([__METHOD__, __LINE__]);
-
-                    /**
-                     * Add channels to IPC instance
-                     *
-                     * @var ParallelChannels $channels
-                     */
-                    $channels = $app->get(IPCChannelsInterface::class);
-                    $channels->setWorkerChannel($workerChannel, true);
-                    $channels->setThreadChannel($threadChannel);
-
-                    var_dump([__METHOD__, __LINE__]);
-
-                    // aliases, config, ...
-                    $app->add('threadConfiguration', $threadConfiguration);
-                    $app->add('threadId', $threadId);
-                    $app->withConfig("threads");
-                    $app->withConfig("broker");
-                    $app->withConfig("cache");
-                    $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([
-                            $app,
-                            IPCChannelsInterface::class,
-                            InboundBusAdapterInterface::class,
-                            SetupBusInterface::class
-                        ]);
-
-                    var_dump([__METHOD__, __LINE__]);
-
-                    // general adapters
-                    $app->add(MessageBusInterface::class, AMQPMessageBus::class);
-                    $app->add(TransformersInterface::class, AMQPTransformer::class);
-                    $app->add(InboundMessageInterface::class, InboundMessage::class)
-                        ->addArgument(MessageBusInterface::class);
-                    $app->add(OutboundMessageInterface::class, OutboundMessage::class)
-                        ->addArgument(MessageBusInterface::class);
-                    $app->add(AMQPConnectorInterface::class, AMQPConnector::class)
-                        ->addArgument(AsyncContractInterface::class);
-                    $app->add(InboundBusInterface::class, AMQPInboundBus::class)
-                        ->addArguments([
-                            AMQPConnectorInterface::class,
-                            AsyncContractInterface::class,
-                            InboundMessageInterface::class,
-                            InboundRouterInterface::class,
-                            LoggerInterface::class
-                        ]);
-                    $app->add(OutboundBusInterface::class, AMQPOutboundBus::class)
-                        ->addArguments([
-                            AMQPConnectorInterface::class,
-                            AsyncContractInterface::class,
-                            LoggerInterface::class
-                        ]);
-                    $app->add(SetupBusInterface::class, AMQPSetup::class)
-                        ->addArguments([
-                            AMQPConnectorInterface::class,
-                            AsyncContractInterface::class,
-                            LoggerInterface::class
-                        ]);
-                    $app->add(AsyncContractInterface::class, function ($configuration, $transformer) {
-                        return (new AsyncContract(
-                            new ContractParser(),
-                            new ContractValidator(
-                                new Validator()
-                            )
-                        ))->setConfiguration($configuration)
-                            ->pushTransformer($transformer);
-                    })->addArguments([$app->get('config')->get('broker'), TransformersInterface::class]);
-
-                    var_dump([__METHOD__, __LINE__]);
-
-                    // inbound adapters
-                    $app->add(InboundRouterInterface::class, $inboundRouter);
-                    $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class)
-                        ->addArgument(InboundBusInterface::class);
-
-                    // outbound adapters
-                    $app->add(OutboundRouterInterface::class, $outboundRouter);
-                    $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class)
-                        ->addArgument(OutboundBusInterface::class);
-                    $app->add(CacheFactoryInterface::class, function ($configuration) {
-                        return (new CacheFactory($configuration))->build();
-                    })->addArgument($app->get('config')->get('cache'));
+                    $app = require $bootstrapBag->basePath . '/bootstrap/app.php';
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
-                },
-                [
-                    $basePath,
-                    $threadId,
-                    $this->threadConfiguration->toArray(),
-                    $this->workerChannel,
-                    $this->threadChannel,
-                    app(InboundRouterInterface::class),
-                    app(OutboundRouterInterface::class)
-                ]
+                }, [$bootstrapBag]
             );
         } catch (Throwable $reason) {
             app()->logger()->error(
