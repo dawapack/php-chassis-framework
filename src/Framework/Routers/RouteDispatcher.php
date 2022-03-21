@@ -13,15 +13,6 @@ use function Chassis\Helpers\app;
 
 class RouteDispatcher implements RouteDispatcherInterface
 {
-    private Application $application;
-
-    /**
-     * @param Application $application
-     */
-    public function __construct(Application $application)
-    {
-        $this->application = $application;
-    }
 
     /**
      * @inheritdoc
@@ -31,7 +22,7 @@ class RouteDispatcher implements RouteDispatcherInterface
         // service resolver
         $resolvedService = $this->serviceResolver($service, $message);
         return $resolvedService->invokable
-            ? ($resolvedService->instance)($message, $this->application)
+            ? ($resolvedService->instance)($message, app())
             : $resolvedService->instance->{$resolvedService->method}();
     }
 
@@ -67,7 +58,7 @@ class RouteDispatcher implements RouteDispatcherInterface
         }
 
         list($resolvedService->class, $resolvedService->method) = $service;
-        $resolvedService->instance = new $resolvedService->class($message, $this->application);
+        $resolvedService->instance = new $resolvedService->class($message, app());
 
         return $resolvedService;
     }
