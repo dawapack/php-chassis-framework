@@ -179,6 +179,13 @@ class ThreadInstance implements ThreadInstanceInterface
     {
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
+
+            var_dump([
+                __METHOD__,
+                app()->has(InboundRouterInterface::class),
+                app()->has(OutboundRouterInterface::class)
+            ]);
+
             $basePath = app('basePath');
             // Create parallel future
             return (new Runtime($basePath . "/vendor/autoload.php"))->run(
