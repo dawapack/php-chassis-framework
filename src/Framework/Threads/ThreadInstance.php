@@ -177,7 +177,6 @@ class ThreadInstance implements ThreadInstanceInterface
      */
     private function createFuture(string $threadId): ?Future
     {
-        var_dump([__METHOD__, $threadId, $this->threadConfiguration->toArray()]);
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
             $basePath = app('basePath');
@@ -210,7 +209,10 @@ class ThreadInstance implements ThreadInstanceInterface
                     $channels->setWorkerChannel($workerChannel, true);
                     $channels->setThreadChannel($threadChannel);
 
-                    var_dump($threadConfiguration);
+                    $app->logger()->info(
+                        "debug_worker",
+                        ["component" => "debug", "thread_config" => $threadConfiguration]
+                    );
 
                     // aliases, config, ...
                     $app->add('threadConfiguration', $threadConfiguration);
