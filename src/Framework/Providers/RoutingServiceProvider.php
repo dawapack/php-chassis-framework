@@ -52,11 +52,12 @@ class RoutingServiceProvider extends AbstractServiceProvider
             return new RouteDispatcher($application);
         })->addArgument(app());
 
-        $container->add(OutboundRouterInterface::class, OutboundRouter::class)
-            ->addArguments([
-                RouteDispatcherInterface::class,
-                $this->outboundRoutes
-            ]);
+        $container->add(OutboundRouterInterface::class, function ($application, $routes) {
+            return new OutboundRouter(
+                new RouteDispatcher($application),
+                $routes
+            );
+        })->addArguments([app(), $this->outboundRoutes]);
 
         $container->add(InboundRouterInterface::class, InboundRouter::class)
             ->addArguments([
