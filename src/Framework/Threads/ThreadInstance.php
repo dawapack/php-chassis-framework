@@ -262,6 +262,10 @@ class ThreadInstance implements ThreadInstanceInterface
                     app(OutboundRouterInterface::class)
                 ]
             );
+        } catch (Runtime\Error $reason) {
+
+            var_dump($reason);
+
         } catch (Throwable $reason) {
             app()->logger()->error(
                 $reason->getMessage(),
