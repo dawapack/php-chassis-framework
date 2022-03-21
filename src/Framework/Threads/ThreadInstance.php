@@ -188,8 +188,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     array $threadConfiguration,
                     Channel $workerChannel,
                     Channel $threadChannel,
-                    $inboundRouter,
-                    $outboundRouter
+                    $inboundRouter
+//                    $outboundRouter
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -265,7 +265,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     $this->workerChannel,
                     $this->threadChannel,
                     app(InboundRouterInterface::class),
-                    app(OutboundRouterInterface::class)
+//                    app(OutboundRouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {
