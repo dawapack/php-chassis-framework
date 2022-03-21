@@ -189,9 +189,15 @@ class AMQPInboundBus implements AMQPInboundBusInterface
         return function (AMQPMessage $message) use ($_this) {
             $ackMessage = ($_this->asyncContract->getOperationBindings($_this->channel))->ack ?? true;
             try {
+
+                var_dump([__METHOD__, __LINE__, $ackMessage]);
+
                 // need to clone inbound message
                 $inboundMessage = clone $_this->inboundMessage;
                 $inboundMessage->setMessage($message);
+
+                var_dump([__METHOD__, __LINE__, $inboundMessage->getProperties()]);
+
                 // route the message
                 $_this->inboundRouter->route(
                     $inboundMessage->getProperty("type"),
