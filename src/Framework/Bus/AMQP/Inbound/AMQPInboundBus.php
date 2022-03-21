@@ -224,7 +224,9 @@ class AMQPInboundBus implements AMQPInboundBusInterface
      */
     protected function toBasicConsumeArguments(string $channel, array $options): array
     {
+        // add callback (message handler) to options
         $options = array_merge($options, ['callback' => $this->messageHandler()]);
+        // build & return consume function arguments
         return $this->asyncContract->transform($channel)->toConsumeArguments($options);
     }
 }
