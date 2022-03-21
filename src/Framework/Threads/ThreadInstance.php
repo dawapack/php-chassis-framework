@@ -131,6 +131,9 @@ class ThreadInstance implements ThreadInstanceInterface
 
         // Create future
         $this->future = $this->createFuture($threadId);
+
+        var_dump($this->future);
+
         if (is_null($this->future)) {
             $this->workerChannel->close();
             $this->threadChannel->close();
