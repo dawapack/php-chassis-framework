@@ -90,7 +90,11 @@ class AMQPInboundBus implements AMQPInboundBusInterface
     public function iterate(): void
     {
         try {
-            $this->amqpChannel->wait(null, false, self::ITERATE_WAIT);
+            if (!$this->amqpChannel->is_open()) {
+                usleep((int)(self::ITERATE_WAIT*1000000));
+            } else {
+                $this->amqpChannel->wait(null, false, self::ITERATE_WAIT);
+            }
         } catch (AMQPTimeoutException $reason) {
             // fault-tolerant - this is a normal behaviour
         }
