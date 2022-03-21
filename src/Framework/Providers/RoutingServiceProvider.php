@@ -11,13 +11,22 @@ use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Routers\RouteDispatcher;
 use Chassis\Framework\Routers\RouteDispatcherInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
+
+use function Chassis\Helpers\app;
 
 class RoutingServiceProvider extends AbstractServiceProvider
 {
     protected array $inboundRoutes = [];
     protected array $outboundRoutes = [];
 
+    /**
+     * @param string $id
+     *
+     * @return bool
+     */
     public function provides(string $id): bool
     {
         $ids = [
@@ -29,11 +38,18 @@ class RoutingServiceProvider extends AbstractServiceProvider
         return in_array($id, $ids);
     }
 
+    /**
+     * @return void
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function register(): void
     {
         $container = $this->getContainer();
 
-        $container->add(RouteDispatcherInterface::class, RouteDispatcher::class);
+        $container->add(RouteDispatcherInterface::class, RouteDispatcher::class)
+            ->addArgument(app());
 
         $container->add(OutboundRouterInterface::class, OutboundRouter::class)
             ->addArguments([RouteDispatcherInterface::class, $this->outboundRoutes]);
