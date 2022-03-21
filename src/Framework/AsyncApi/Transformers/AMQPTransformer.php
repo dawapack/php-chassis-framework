@@ -149,9 +149,11 @@ class AMQPTransformer implements TransformersInterface
      */
     public function toQueueDeclareArguments(array $options, bool $onlyValues = true): array
     {
+
+        var_dump([__METHOD__, $this->channelBindings]);
+
         $arguments = array_merge(
             $this->queueDeclareOptions,
-            (array)$this->channelBindings,
             array_intersect_key(
                 $options,
                 $this->queueDeclareOptions
