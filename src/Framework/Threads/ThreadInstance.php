@@ -182,8 +182,8 @@ class ThreadInstance implements ThreadInstanceInterface
 
             var_dump([
                 __METHOD__,
-                app()->has(InboundRouterInterface::class),
-                app()->has(OutboundRouterInterface::class)
+                app()->get(InboundRouterInterface::class),
+                app()->get(OutboundRouterInterface::class)
             ]);
 
             $basePath = app('basePath');
