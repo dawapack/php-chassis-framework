@@ -183,11 +183,11 @@ class ThreadInstance implements ThreadInstanceInterface
             // Create parallel future
             return (new Runtime($basePath . "/vendor/autoload.php"))->run(
                 static function (
-//                    string $basePath,
-//                    string $threadId,
-//                    array $threadConfiguration,
-//                    Channel $workerChannel,
-//                    Channel $threadChannel,
+                    string $basePath,
+                    string $threadId,
+                    array $threadConfiguration,
+                    Channel $workerChannel,
+                    Channel $threadChannel,
 //                    $inboundRouter,
 //                    $outboundRouter
                 ): void {
@@ -259,11 +259,11 @@ class ThreadInstance implements ThreadInstanceInterface
 //                    (new Kernel($app))->boot();
                 },
                 [
-//                    $basePath,
-//                    $threadId,
-//                    $this->threadConfiguration->toArray(),
-//                    $this->workerChannel,
-//                    $this->threadChannel,
+                    $basePath,
+                    $threadId,
+                    $this->threadConfiguration->toArray(),
+                    $this->workerChannel,
+                    $this->threadChannel,
 //                    app(InboundRouterInterface::class),
 //                    app(OutboundRouterInterface::class)
                 ]
