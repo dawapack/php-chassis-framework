@@ -89,18 +89,18 @@ class AMQPInboundBus implements AMQPInboundBusInterface
      */
     public function iterate(): void
     {
-        /**
-         * threads like infrastructure doesn't consume
-         * which means the amqp channel will not be set
-         */
-        if (!isset($this->amqpChannel)) {
-            // wait a while - prevent CPU load
-            usleep((int)(self::ITERATE_WAIT * 1000000));
-            return;
-        }
-
         try {
-            $this->amqpChannel->wait(null, false, self::ITERATE_WAIT);
+            /**
+             * threads like infrastructure doesn't consume
+             * which means the amqp channel will not be set
+             */
+            if (!isset($this->amqpChannel)) {
+                // wait a while - prevent CPU load
+                usleep((int)(self::ITERATE_WAIT * 1000000));
+                return;
+            } else {
+                $this->amqpChannel->wait(null, false, self::ITERATE_WAIT);
+            }
         } catch (AMQPTimeoutException $reason) {
             // fault-tolerant - this is a normal behaviour
         }
