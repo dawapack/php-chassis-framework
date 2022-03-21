@@ -36,8 +36,14 @@ class Kernel implements KernelInterface
     public function boot(): void
     {
         if ($this->app->isWorker()) {
+
+            var_dump([__METHOD__, "run worker"]);
+
             ($this->app->get(WorkerInterface::class))->start();
         } elseif ($this->app->isDaemon()) {
+
+            var_dump([__METHOD__, "run daemon"]);
+
             ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
         }
     }
