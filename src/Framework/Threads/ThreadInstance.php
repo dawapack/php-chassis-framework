@@ -183,13 +183,13 @@ class ThreadInstance implements ThreadInstanceInterface
             // Create parallel future
             return (new Runtime($basePath . "/vendor/autoload.php"))->run(
                 static function (
-                    string $basePath,
-                    string $threadId,
-                    array $threadConfiguration,
-                    Channel $workerChannel,
-                    Channel $threadChannel,
-                    $inboundRouter,
-                    $outboundRouter
+//                    string $basePath,
+//                    string $threadId,
+//                    array $threadConfiguration,
+//                    Channel $workerChannel,
+//                    Channel $threadChannel,
+//                    $inboundRouter,
+//                    $outboundRouter
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -259,13 +259,13 @@ class ThreadInstance implements ThreadInstanceInterface
 //                    (new Kernel($app))->boot();
                 },
                 [
-                    $basePath,
-                    $threadId,
-                    $this->threadConfiguration->toArray(),
-                    $this->workerChannel,
-                    $this->threadChannel,
-                    app(InboundRouterInterface::class),
-                    app(OutboundRouterInterface::class)
+//                    $basePath,
+//                    $threadId,
+//                    $this->threadConfiguration->toArray(),
+//                    $this->workerChannel,
+//                    $this->threadChannel,
+//                    app(InboundRouterInterface::class),
+//                    app(OutboundRouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {
