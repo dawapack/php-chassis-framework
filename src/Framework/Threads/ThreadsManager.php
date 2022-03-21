@@ -242,6 +242,8 @@ class ThreadsManager implements ThreadsManagerInterface
      *
      * @return void
      *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @throws ThreadInstanceException
      */
     protected function startThread(ThreadInstance $threadInstance)

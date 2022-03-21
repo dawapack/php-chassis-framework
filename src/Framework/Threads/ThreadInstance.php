@@ -174,6 +174,7 @@ class ThreadInstance implements ThreadInstanceInterface
      */
     private function createFuture(string $threadId): ?Future
     {
+        var_dump([__METHOD__, $threadId]);
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
             $basePath = app('basePath');
