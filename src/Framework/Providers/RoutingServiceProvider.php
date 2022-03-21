@@ -57,7 +57,6 @@ class RoutingServiceProvider extends AbstractServiceProvider
         $container->add(InboundRouterInterface::class, InboundRouter::class)
             ->addArguments([
                 RouteDispatcherInterface::class,
-                OutboundRouterInterface::class,
                 LoggerInterface::class,
                 $this->inboundRoutes
             ]);
