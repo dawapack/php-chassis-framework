@@ -7,6 +7,8 @@ namespace Chassis\Framework\Services;
 use Chassis\Application;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
+use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use JsonException;
 
 class AbstractService implements ServiceInterface
 {
@@ -29,5 +31,32 @@ class AbstractService implements ServiceInterface
         $this->app = $application;
         $this->inboundMessage = $inboundMessage;
         $this->outboundMessage = $outboundMessage;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getMessageProperties(): array
+    {
+        return $this->inboundMessage->getProperties();
+    }
+
+    /**
+     * @return array
+     */
+    protected function getMessageHeaders(): array
+    {
+        return $this->inboundMessage->getHeaders();
+    }
+
+    /**
+     * @return mixed
+     *
+     * @throws MessageBodyContentTypeException
+     * @throws JsonException
+     */
+    protected function getMessageBody()
+    {
+        return $this->inboundMessage->getBody();
     }
 }
