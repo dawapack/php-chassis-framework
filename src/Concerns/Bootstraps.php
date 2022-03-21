@@ -39,9 +39,9 @@ use Chassis\Framework\OutboundAdapters\Cache\CacheFactoryInterface;
 use Chassis\Framework\Providers\ThreadsServiceProvider;
 use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Routers\OutboundRouterInterface;
-use Chassis\Framework\RuntimeBag;
 use Chassis\Framework\Threads\Configuration\ThreadsConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
+use Chassis\Framework\Threads\ThreadRuntimeBag;
 use Chassis\Framework\Workers\Worker;
 use Chassis\Framework\Workers\WorkerInterface;
 use League\Config\Configuration as LeagueConfiguration;
@@ -109,7 +109,7 @@ trait Bootstraps
     private function bootstrapWorker(): void
     {
         // get instance of bootstrap bag
-        $runtimeBag = RuntimeBag::factory();
+        $runtimeBag = ThreadRuntimeBag::factory();
 
         // IPC setup
         $this->add(IPCChannelsInterface::class, ParallelChannels::class)

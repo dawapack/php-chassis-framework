@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework;
+namespace Chassis\Framework\Threads;
 
-class RuntimeBag
+class ThreadRuntimeBag
 {
     /**
-     * @var RuntimeBag $instance
+     * @var ThreadRuntimeBag $instance
      */
-    private static RuntimeBag $instance;
+    private static ThreadRuntimeBag $instance;
 
     /**
-     * @param RuntimeBag|null $fromInstance
+     * @param ThreadRuntimeBag|null $fromInstance
      *
-     * @return RuntimeBag
+     * @return ThreadRuntimeBag
      */
-    public static function factory(RuntimeBag $fromInstance = null): RuntimeBag
+    public static function factory(ThreadRuntimeBag $fromInstance = null): ThreadRuntimeBag
     {
-        // clone an instance of RuntimeBag
+        // clone an instance of ThreadRuntimeBag
         if (!is_null($fromInstance)) {
             return self::$instance = $fromInstance;
         }
-        // return an existing or create a new RuntimeBag instance
-        return self::$instance ?? self::$instance = new RuntimeBag();
+        // return an existing or create a new ThreadRuntimeBag instance
+        return self::$instance ?? self::$instance = new ThreadRuntimeBag();
     }
 
     /**
@@ -32,7 +32,7 @@ class RuntimeBag
      *
      * @return $this
      */
-    public function with(string $name, $value): RuntimeBag
+    public function with(string $name, $value): ThreadRuntimeBag
     {
         $this->{$name} = $value;
         return $this;

@@ -5,54 +5,19 @@ declare(strict_types=1);
 namespace Chassis\Framework\Threads;
 
 use Chassis\Application;
-use Chassis\Framework\Adapters\Inbound\InboundBusAdapter;
-use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
-use Chassis\Framework\Adapters\Message\InboundMessage;
-use Chassis\Framework\Adapters\Message\InboundMessageInterface;
-use Chassis\Framework\Adapters\Message\OutboundMessage;
-use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
-use Chassis\Framework\AsyncApi\AsyncContract;
-use Chassis\Framework\AsyncApi\AsyncContractInterface;
-use Chassis\Framework\AsyncApi\ContractParser;
-use Chassis\Framework\AsyncApi\ContractValidator;
-use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
-use Chassis\Framework\AsyncApi\TransformersInterface;
-use Chassis\Framework\RuntimeBag;
-use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
-use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
-use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
-use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\AMQP\Outbound\AMQPOutboundBus;
-use Chassis\Framework\Bus\AMQP\Setup\AMQPSetup;
-use Chassis\Framework\Bus\InboundBusInterface;
-use Chassis\Framework\Bus\MessageBusInterface;
-use Chassis\Framework\Bus\OutboundBusInterface;
-use Chassis\Framework\Bus\SetupBusInterface;
-use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
-use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Kernel;
-use Chassis\Framework\OutboundAdapters\Cache\CacheFactory;
-use Chassis\Framework\OutboundAdapters\Cache\CacheFactoryInterface;
 use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
-use Chassis\Framework\Workers\Worker;
-use Chassis\Framework\Workers\WorkerInterface;
-use Opis\JsonSchema\Validator;
 use parallel\Channel;
 use parallel\Channel\Error\Existence;
-use parallel\Events;
 use parallel\Future;
 use parallel\Runtime;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
-
 use function Chassis\Helpers\app;
 
 class ThreadInstance implements ThreadInstanceInterface
@@ -181,7 +146,7 @@ class ThreadInstance implements ThreadInstanceInterface
     {
         $application = app();
         try {
-            $runtimeBag = RuntimeBag::factory()
+            $runtimeBag = ThreadRuntimeBag::factory()
                 ->with('basePath', $application->get('basePath'))
                 ->with('threadId', $threadId)
                 ->with('threadConfiguration', $this->threadConfiguration->toArray())
@@ -192,12 +157,12 @@ class ThreadInstance implements ThreadInstanceInterface
 
             // Create parallel future - inject vendor autoloader
             return (new Runtime($runtimeBag->basePath . "/vendor/autoload.php"))->run(
-                static function (RuntimeBag $runtimeBag): void {
+                static function (ThreadRuntimeBag $runtimeBag): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
 
                     // create singleton - clone runtime bag from function argument
-                    RuntimeBag::factory($runtimeBag);
+                    ThreadRuntimeBag::factory($runtimeBag);
 
                     /** @var Application $app */
                     $app = require $runtimeBag->basePath . '/bootstrap/app.php';
