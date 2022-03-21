@@ -15,9 +15,7 @@ class BootstrapBag
             return self::$instance = $fromInstance;
         }
         // return an existing or create a new BootstrapBag instance
-        return (self::$instance instanceof BootstrapBag)
-            ? self::$instance
-            : self::$instance = new BootstrapBag();
+        return self::$instance ?? self::$instance = new BootstrapBag();
     }
 
     /**
