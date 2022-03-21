@@ -218,7 +218,12 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->withConfig("broker");
                     $app->withConfig("cache");
                     $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([$app, IPCChannelsInterface::class]);
+                        ->addArguments([
+                            $app,
+                            IPCChannelsInterface::class,
+                            InboundBusAdapterInterface::class,
+                            SetupBusInterface::class
+                        ]);
 
                     var_dump([__METHOD__, __LINE__]);
 
