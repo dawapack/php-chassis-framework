@@ -17,6 +17,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 
+use Throwable;
 use function Chassis\Helpers\app;
 
 class ThreadsManager implements ThreadsManagerInterface
@@ -236,13 +237,19 @@ class ThreadsManager implements ThreadsManagerInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws ThreadInstanceException
+     * @throws Throwable
      */
     protected function startThread(ThreadInstance $threadInstance)
     {
-        $threadId = $threadInstance->spawn();
-        $this->threads[$threadId] = $threadInstance;
-        // add event listener
-        $this->events->addChannel($threadInstance->getThreadChannel());
+        try {
+            $threadId = $threadInstance->spawn();
+            $this->threads[$threadId] = $threadInstance;
+            // add event listener
+            $this->events->addChannel($threadInstance->getThreadChannel());
+        } catch (Throwable $reason) {
+            var_dump([__METHOD__, $reason->getMessage()]);
+            throw $reason;
+        }
     }
 
     /**
