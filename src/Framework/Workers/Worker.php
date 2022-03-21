@@ -32,7 +32,7 @@ class Worker implements WorkerInterface
      * @param Application $application
      * @param IPCChannelsInterface $ipcChannels
      * @param InboundBusAdapterInterface $inboundBusAdapter
-     * @param SetupBusInterface $setupBus
+     * @param SetupBusInterface $bus
      */
     public function __construct(
         Application $application,

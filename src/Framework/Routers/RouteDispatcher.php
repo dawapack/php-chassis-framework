@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
-use Chassis\Application;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\MessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
