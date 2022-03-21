@@ -7,6 +7,7 @@ namespace Chassis\Framework\Threads;
 use Chassis\Application;
 use Chassis\Framework\Adapters\Inbound\InboundBusAdapter;
 use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
+use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
 use Chassis\Framework\AsyncApi\AsyncContract;
@@ -228,12 +229,30 @@ class ThreadInstance implements ThreadInstanceInterface
                     var_dump([__METHOD__, __LINE__]);
 
                     // general adapters
-                    $app->add(AMQPConnectorInterface::class, AMQPConnector::class);
+                    $app->add(AMQPConnectorInterface::class, AMQPConnector::class)
+                        ->addArgument(AsyncContractInterface::class);
                     $app->add(TransformersInterface::class, AMQPTransformer::class);
                     $app->add(MessageBusInterface::class, AMQPMessageBus::class);
-                    $app->add(InboundBusInterface::class, AMQPInboundBus::class);
-                    $app->add(OutboundBusInterface::class, AMQPOutboundBus::class);
-                    $app->add(SetupBusInterface::class, AMQPSetup::class);
+                    $app->add(InboundBusInterface::class, AMQPInboundBus::class)
+                        ->addArguments([
+                            AMQPConnectorInterface::class,
+                            AsyncContractInterface::class,
+                            InboundMessageInterface::class,
+                            InboundRouterInterface::class,
+                            LoggerInterface::class
+                        ]);
+                    $app->add(OutboundBusInterface::class, AMQPOutboundBus::class)
+                        ->addArguments([
+                            AMQPConnectorInterface::class,
+                            AsyncContractInterface::class,
+                            LoggerInterface::class
+                        ]);
+                    $app->add(SetupBusInterface::class, AMQPSetup::class)
+                        ->addArguments([
+                            AMQPConnectorInterface::class,
+                            AsyncContractInterface::class,
+                            LoggerInterface::class
+                        ]);
                     $app->add(AsyncContractInterface::class, function ($configuration, $transformer) {
                         return (new AsyncContract(
                             new ContractParser(),
@@ -247,19 +266,17 @@ class ThreadInstance implements ThreadInstanceInterface
                     var_dump([__METHOD__, __LINE__]);
 
                     // inbound adapters
-                    $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class);
+                    $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class)
+                        ->addArgument(InboundBusInterface::class);
                     $app->add(InboundRouterInterface::class, $inboundRouter);
 
-                    var_dump([__METHOD__, __LINE__]);
-
                     // outbound adapters
-                    $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class);
+                    $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class)
+                        ->addArgument(OutboundBusInterface::class);
                     $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(CacheFactoryInterface::class, function ($configuration) {
                         return (new CacheFactory($configuration))->build();
                     })->addArgument($app->get('config')->get('cache'));
-
-                    var_dump([__METHOD__, __LINE__]);
 
                     // Start processing jobs
                     (new Kernel($app))->boot();

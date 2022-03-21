@@ -15,9 +15,8 @@ class OutboundBusAdapter implements OutboundBusAdapterInterface
     /**
      * @param OutboundBusInterface $outboundBus
      */
-    public function __construct(
-        OutboundBusInterface $outboundBus
-    ) {
+    public function __construct(OutboundBusInterface $outboundBus)
+    {
         $this->outboundBus = $outboundBus;
     }
 
