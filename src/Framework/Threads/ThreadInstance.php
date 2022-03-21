@@ -179,10 +179,6 @@ class ThreadInstance implements ThreadInstanceInterface
     {
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
-
-            app(InboundRouterInterface::class);
-            app(OutboundRouterInterface::class);
-
             $basePath = app('basePath');
             // Create parallel future
             return (new Runtime($basePath . "/vendor/autoload.php"))->run(
@@ -191,9 +187,9 @@ class ThreadInstance implements ThreadInstanceInterface
                     string $threadId,
                     array $threadConfiguration,
                     Channel $workerChannel,
-                    Channel $threadChannel
-//                    $inboundRouter,
-//                    $outboundRouter
+                    Channel $threadChannel,
+                    $inboundRouter,
+                    $outboundRouter
                 ): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
@@ -268,8 +264,8 @@ class ThreadInstance implements ThreadInstanceInterface
                     $this->threadConfiguration->toArray(),
                     $this->workerChannel,
                     $this->threadChannel,
-//                    app(InboundRouterInterface::class),
-//                    app(OutboundRouterInterface::class)
+                    app(InboundRouterInterface::class),
+                    app(OutboundRouterInterface::class)
                 ]
             );
         } catch (Throwable $reason) {
