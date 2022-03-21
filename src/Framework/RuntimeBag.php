@@ -6,15 +6,23 @@ namespace Chassis\Framework;
 
 class RuntimeBag
 {
+    /**
+     * @var RuntimeBag $instance
+     */
     private static RuntimeBag $instance;
 
+    /**
+     * @param RuntimeBag|null $fromInstance
+     *
+     * @return RuntimeBag
+     */
     public static function factory(RuntimeBag $fromInstance = null): RuntimeBag
     {
-        // clone an instance of BootstrapBag
+        // clone an instance of RuntimeBag
         if (!is_null($fromInstance)) {
             return self::$instance = $fromInstance;
         }
-        // return an existing or create a new BootstrapBag instance
+        // return an existing or create a new RuntimeBag instance
         return self::$instance ?? self::$instance = new RuntimeBag();
     }
 
@@ -31,6 +39,8 @@ class RuntimeBag
     }
 
     /**
+     * This is only a bag, so we use magic method get to access properties
+     *
      * @param string $name
      *
      * @return mixed|null

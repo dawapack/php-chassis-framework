@@ -179,24 +179,24 @@ class ThreadInstance implements ThreadInstanceInterface
      */
     private function createFuture(string $threadId): ?Future
     {
-        // Create parallel runtime - inject vendor autoload as bootstrap
+        $application = app();
         try {
             $runtimeBag = RuntimeBag::factory()
-                ->with('basePath', app('basePath'))
+                ->with('basePath', $application->get('basePath'))
                 ->with('threadId', $threadId)
                 ->with('threadConfiguration', $this->threadConfiguration->toArray())
                 ->with('workerChannel', $this->workerChannel)
                 ->with('threadChannel', $this->threadChannel)
-                ->with('inboundRouter', app(InboundRouterInterface::class))
-                ->with('outboundRouter', app(OutboundRouterInterface::class));
+                ->with('inboundRouter', $application->get(InboundRouterInterface::class))
+                ->with('outboundRouter', $application->get(OutboundRouterInterface::class));
 
-            // Create parallel future
+            // Create parallel future - inject vendor autoloader
             return (new Runtime($runtimeBag->basePath . "/vendor/autoload.php"))->run(
                 static function (RuntimeBag $runtimeBag): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
 
-                    // create singleton - clone function argument
+                    // create singleton - clone runtime bag from function argument
                     RuntimeBag::factory($runtimeBag);
 
                     /** @var Application $app */
@@ -207,7 +207,7 @@ class ThreadInstance implements ThreadInstanceInterface
                 }, [$runtimeBag]
             );
         } catch (Throwable $reason) {
-            app()->logger()->error(
+            $application->logger()->error(
                 $reason->getMessage(),
                 [
                     "component" => self::LOGGER_COMPONENT_PREFIX . "create_future_exception",
