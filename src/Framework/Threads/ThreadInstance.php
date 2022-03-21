@@ -187,7 +187,7 @@ class ThreadInstance implements ThreadInstanceInterface
                     string $threadId,
                     array $threadConfiguration,
                     Channel $workerChannel,
-                    Channel $threadChannel,
+                    Channel $threadChannel
 //                    $inboundRouter,
 //                    $outboundRouter
                 ): void {
