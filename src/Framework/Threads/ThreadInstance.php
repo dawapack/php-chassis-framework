@@ -209,7 +209,6 @@ class ThreadInstance implements ThreadInstanceInterface
                     $channels->setWorkerChannel($workerChannel, true);
                     $channels->setThreadChannel($threadChannel);
 
-
                     var_dump([__METHOD__, __LINE__]);
 
                     // aliases, config, ...
@@ -220,7 +219,6 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->withConfig("cache");
                     $app->add(WorkerInterface::class, Worker::class)
                         ->addArguments([$app, IPCChannelsInterface::class]);
-
 
                     var_dump([__METHOD__, __LINE__]);
 
@@ -241,13 +239,11 @@ class ThreadInstance implements ThreadInstanceInterface
                             ->pushTransformer($transformer);
                     })->addArguments([$app->get('config')->get('broker'), TransformersInterface::class]);
 
-
                     var_dump([__METHOD__, __LINE__]);
 
                     // inbound adapters
                     $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class);
                     $app->add(InboundRouterInterface::class, $inboundRouter);
-
 
                     var_dump([__METHOD__, __LINE__]);
 
@@ -257,7 +253,6 @@ class ThreadInstance implements ThreadInstanceInterface
                     $app->add(CacheFactoryInterface::class, function ($configuration) {
                         return (new CacheFactory($configuration))->build();
                     })->addArgument($app->get('config')->get('cache'));
-
 
                     var_dump([__METHOD__, __LINE__]);
 
