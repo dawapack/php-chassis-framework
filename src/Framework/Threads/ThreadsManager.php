@@ -170,23 +170,14 @@ class ThreadsManager implements ThreadsManagerInterface
     public function threadsSetup(): void
     {
         // Spawn infrastructure thread
-
-        var_dump([__METHOD__, $this->threadsConfiguration->getThreadConfiguration('infrastructure')]);
-
         $this->threadsConfiguration->hasInfrastructureThread() && $this->spawnThread(
             $this->threadsConfiguration->getThreadConfiguration('infrastructure')
         );
         // Spawn centralized configuration thread
-
-        var_dump([__METHOD__, $this->threadsConfiguration->getThreadConfiguration('configuration')]);
-
         $this->threadsConfiguration->hasCentralizedConfigurationThread() && $this->spawnThread(
             $this->threadsConfiguration->getThreadConfiguration('configuration')
         );
         // Spawn worker threads
-
-        var_dump([__METHOD__, $this->threadsConfiguration->getThreadConfiguration('worker')]);
-
         $workersConfiguration = $this->threadsConfiguration->getThreadConfiguration('worker');
         if ($workersConfiguration->enabled) {
             foreach ($workersConfiguration->channels as $channel) {

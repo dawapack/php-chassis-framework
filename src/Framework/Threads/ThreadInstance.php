@@ -195,57 +195,63 @@ class ThreadInstance implements ThreadInstanceInterface
                     /** @var Application $app */
                     $app = require $basePath . '/bootstrap/app.php';
 
-                    // IPC setup
-                    $app->add(IPCChannelsInterface::class, ParallelChannels::class)
-                        ->addArguments([new Events(), LoggerInterface::class]);
-                    /**
-                     * Add channels to IPC instance
-                     *
-                     * @var ParallelChannels $channels
-                     */
-                    $channels = $app->get(IPCChannelsInterface::class);
-                    $channels->setWorkerChannel($workerChannel, true);
-                    $channels->setThreadChannel($threadChannel);
+                    try {
+                        // IPC setup
+                        $app->add(IPCChannelsInterface::class, ParallelChannels::class)
+                            ->addArguments([new Events(), LoggerInterface::class]);
+                        /**
+                         * Add channels to IPC instance
+                         *
+                         * @var ParallelChannels $channels
+                         */
+                        $channels = $app->get(IPCChannelsInterface::class);
+                        $channels->setWorkerChannel($workerChannel, true);
+                        $channels->setThreadChannel($threadChannel);
 
-                    // aliases, config, ...
-                    $app->add('threadConfiguration', $threadConfiguration);
-                    $app->add('threadId', $threadId);
-                    $app->withConfig("threads");
-                    $app->withConfig("broker");
-                    $app->withConfig("cache");
-                    $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([$app, IPCChannelsInterface::class]);
+                        // aliases, config, ...
+                        $app->add('threadConfiguration', $threadConfiguration);
+                        $app->add('threadId', $threadId);
+                        $app->withConfig("threads");
+                        $app->withConfig("broker");
+                        $app->withConfig("cache");
+                        $app->add(WorkerInterface::class, Worker::class)
+                            ->addArguments([$app, IPCChannelsInterface::class]);
 
-                    // general adapters
-                    $app->add(AMQPConnectorInterface::class, AMQPConnector::class);
-                    $app->add(TransformersInterface::class, AMQPTransformer::class);
-                    $app->add(MessageBusInterface::class, AMQPMessageBus::class);
-                    $app->add(InboundBusInterface::class, AMQPInboundBus::class);
-                    $app->add(OutboundBusInterface::class, AMQPOutboundBus::class);
-                    $app->add(SetupBusInterface::class, AMQPSetup::class);
-                    $app->add(AsyncContractInterface::class, function ($configuration, $transformer) {
-                        return (new AsyncContract(
-                            new ContractParser(),
-                            new ContractValidator(
-                                new Validator()
-                            )
-                        ))->setConfiguration($configuration)
-                            ->pushTransformer($transformer);
-                    })->addArguments([$app->get('config')->get('broker'), TransformersInterface::class]);
+                        // general adapters
+                        $app->add(AMQPConnectorInterface::class, AMQPConnector::class);
+                        $app->add(TransformersInterface::class, AMQPTransformer::class);
+                        $app->add(MessageBusInterface::class, AMQPMessageBus::class);
+                        $app->add(InboundBusInterface::class, AMQPInboundBus::class);
+                        $app->add(OutboundBusInterface::class, AMQPOutboundBus::class);
+                        $app->add(SetupBusInterface::class, AMQPSetup::class);
+                        $app->add(AsyncContractInterface::class, function ($configuration, $transformer) {
+                            return (new AsyncContract(
+                                new ContractParser(),
+                                new ContractValidator(
+                                    new Validator()
+                                )
+                            ))->setConfiguration($configuration)
+                                ->pushTransformer($transformer);
+                        })->addArguments([$app->get('config')->get('broker'), TransformersInterface::class]);
 
-                    // inbound adapters
-                    $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class);
-                    $app->add(InboundRouterInterface::class, $inboundRouter);
+                        // inbound adapters
+                        $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class);
+                        $app->add(InboundRouterInterface::class, $inboundRouter);
 
-                    // outbound adapters
-                    $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class);
-                    $app->add(OutboundRouterInterface::class, $outboundRouter);
-                    $app->add(CacheFactoryInterface::class, function ($configuration) {
-                        return (new CacheFactory($configuration))->build();
-                    })->addArgument($app->get('config')->get('cache'));
+                        // outbound adapters
+                        $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class);
+                        $app->add(OutboundRouterInterface::class, $outboundRouter);
+                        $app->add(CacheFactoryInterface::class, function ($configuration) {
+                            return (new CacheFactory($configuration))->build();
+                        })->addArgument($app->get('config')->get('cache'));
 
-                    // Start processing jobs
-                    (new Kernel($app))->boot();
+                        // Start processing jobs
+                        (new Kernel($app))->boot();
+                    } catch (Throwable $reason) {
+
+                        var_dump($reason->getMessage());
+
+                    }
                 },
                 [
                     $basePath,
