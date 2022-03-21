@@ -19,7 +19,7 @@ use Chassis\Framework\AsyncApi\ContractParser;
 use Chassis\Framework\AsyncApi\ContractValidator;
 use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
 use Chassis\Framework\AsyncApi\TransformersInterface;
-use Chassis\Framework\BootstrapBag;
+use Chassis\Framework\RuntimeBag;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
 use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
@@ -181,7 +181,7 @@ class ThreadInstance implements ThreadInstanceInterface
     {
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
-            $bootstrapBag = BootstrapBag::factory()
+            $runtimeBag = RuntimeBag::factory()
                 ->with('basePath', app('basePath'))
                 ->with('threadId', $threadId)
                 ->with('threadConfiguration', $this->threadConfiguration->toArray())
@@ -191,20 +191,20 @@ class ThreadInstance implements ThreadInstanceInterface
                 ->with('outboundRouter', app(OutboundRouterInterface::class));
 
             // Create parallel future
-            return (new Runtime($bootstrapBag->basePath . "/vendor/autoload.php"))->run(
-                static function (BootstrapBag $bootstrapBag): void {
+            return (new Runtime($runtimeBag->basePath . "/vendor/autoload.php"))->run(
+                static function (RuntimeBag $runtimeBag): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
 
                     // create singleton - clone function argument
-                    BootstrapBag::factory($bootstrapBag);
+                    RuntimeBag::factory($runtimeBag);
 
                     /** @var Application $app */
-                    $app = require $bootstrapBag->basePath . '/bootstrap/app.php';
+                    $app = require $runtimeBag->basePath . '/bootstrap/app.php';
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
-                }, [$bootstrapBag]
+                }, [$runtimeBag]
             );
         } catch (Throwable $reason) {
             app()->logger()->error(

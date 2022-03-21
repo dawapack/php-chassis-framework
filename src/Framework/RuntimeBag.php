@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Chassis\Framework;
 
-class BootstrapBag
+class RuntimeBag
 {
-    private static BootstrapBag $instance;
+    private static RuntimeBag $instance;
 
-    public static function factory(BootstrapBag $fromInstance = null): BootstrapBag
+    public static function factory(RuntimeBag $fromInstance = null): RuntimeBag
     {
         // clone an instance of BootstrapBag
         if (!is_null($fromInstance)) {
             return self::$instance = $fromInstance;
         }
         // return an existing or create a new BootstrapBag instance
-        return self::$instance ?? self::$instance = new BootstrapBag();
+        return self::$instance ?? self::$instance = new RuntimeBag();
     }
 
     /**
@@ -24,7 +24,7 @@ class BootstrapBag
      *
      * @return $this
      */
-    public function with(string $name, $value): BootstrapBag
+    public function with(string $name, $value): RuntimeBag
     {
         $this->{$name} = $value;
         return $this;

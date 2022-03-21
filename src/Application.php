@@ -20,7 +20,7 @@ use Chassis\Framework\AsyncApi\ContractParser;
 use Chassis\Framework\AsyncApi\ContractValidator;
 use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
 use Chassis\Framework\AsyncApi\TransformersInterface;
-use Chassis\Framework\BootstrapBag;
+use Chassis\Framework\RuntimeBag;
 use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfiguration;
 use Chassis\Framework\Brokers\Amqp\Configurations\BrokerConfigurationInterface;
 use Chassis\Framework\Brokers\Amqp\Contracts\ContractsManager;
@@ -264,7 +264,7 @@ class Application extends Container
     private function bootstrapWorker(): void
     {
         // get instance of bootstrap bag
-        $bootstrapBag = BootstrapBag::factory();
+        $runtimeBag = RuntimeBag::factory();
 
         // IPC setup
         $this->add(IPCChannelsInterface::class, ParallelChannels::class)
@@ -276,12 +276,12 @@ class Application extends Container
          * @var ParallelChannels $channels
          */
         $channels = $this->get(IPCChannelsInterface::class);
-        $channels->setWorkerChannel($bootstrapBag->workerChannel, true);
-        $channels->setThreadChannel($bootstrapBag->threadChannel);
+        $channels->setWorkerChannel($runtimeBag->workerChannel, true);
+        $channels->setThreadChannel($runtimeBag->threadChannel);
 
         // aliases, config, ...
-        $this->add('threadConfiguration', $bootstrapBag->threadConfiguration);
-        $this->add('threadId', $bootstrapBag->threadId);
+        $this->add('threadConfiguration', $runtimeBag->threadConfiguration);
+        $this->add('threadId', $runtimeBag->threadId);
         $this->withConfig("threads");
         $this->withConfig("broker");
         $this->withConfig("cache");
@@ -333,12 +333,12 @@ class Application extends Container
         })->addArguments([$this->get('config')->get('broker'), TransformersInterface::class]);
 
         // inbound adapters
-        $this->add(InboundRouterInterface::class, $bootstrapBag->inboundRouter);
+        $this->add(InboundRouterInterface::class, $runtimeBag->inboundRouter);
         $this->add(InboundBusAdapterInterface::class, InboundBusAdapter::class)
             ->addArgument(InboundBusInterface::class);
 
         // outbound adapters
-        $this->add(OutboundRouterInterface::class, $bootstrapBag->outboundRouter);
+        $this->add(OutboundRouterInterface::class, $runtimeBag->outboundRouter);
         $this->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class)
             ->addArgument(OutboundBusInterface::class);
         $this->add(CacheFactoryInterface::class, function ($configuration) {
