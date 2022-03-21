@@ -257,6 +257,9 @@ class ThreadInstance implements ThreadInstanceInterface
                 ]
             );
         } catch (Throwable $reason) {
+
+            var_dump($reason->getMessage());
+
             app()->logger()->error(
                 $reason->getMessage(),
                 [
