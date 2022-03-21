@@ -9,7 +9,9 @@ use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Routers\OutboundRouter;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Routers\RouteDispatcher;
+use Chassis\Framework\Routers\RouteDispatcherInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use Psr\Log\LoggerInterface;
 
 class RoutingServiceProvider extends AbstractServiceProvider
 {
@@ -19,6 +21,7 @@ class RoutingServiceProvider extends AbstractServiceProvider
     public function provides(string $id): bool
     {
         $ids = [
+            RouteDispatcherInterface::class,
             InboundRouterInterface::class,
             OutboundRouterInterface::class
         ];
@@ -30,10 +33,17 @@ class RoutingServiceProvider extends AbstractServiceProvider
     {
         $container = $this->getContainer();
 
-        $container->add(InboundRouterInterface::class, InboundRouter::class)
-            ->addArguments([new RouteDispatcher(), $this->inboundRoutes]);
+        $container->add(RouteDispatcherInterface::class, RouteDispatcher::class);
 
         $container->add(OutboundRouterInterface::class, OutboundRouter::class)
-            ->addArguments([new RouteDispatcher(), $this->outboundRoutes]);
+            ->addArguments([RouteDispatcherInterface::class, $this->outboundRoutes]);
+
+        $container->add(InboundRouterInterface::class, InboundRouter::class)
+            ->addArguments([
+                RouteDispatcherInterface::class,
+                OutboundRouterInterface::class,
+                LoggerInterface::class,
+                $this->inboundRoutes
+            ]);
     }
 }

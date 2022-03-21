@@ -171,44 +171,44 @@ class Application extends Container
         $this->addServiceProvider(new ThreadsServiceProvider());
     }
 
-    /**
-     * @param bool $bindDependencies
-     *
-     * @return void
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     * @throws Throwable
-     */
-    public function withBroker(bool $bindDependencies = false): void
-    {
-        $this->withConfig("broker");
+//    /**
+//     * @param bool $bindDependencies
+//     *
+//     * @return void
+//     * @throws ContainerExceptionInterface
+//     * @throws NotFoundExceptionInterface
+//     * @throws Throwable
+//     */
+//    public function withBroker(bool $bindDependencies = false): void
+//    {
+//        $this->withConfig("broker");
+//
+//        $this->add(BrokerConfigurationInterface::class, BrokerConfiguration::class)
+//            ->addArgument($this->get("config")->get("broker"));
+//
+//        $bindDependencies && $this->bindBrokerDependencies();
+//    }
 
-        $this->add(BrokerConfigurationInterface::class, BrokerConfiguration::class)
-            ->addArgument($this->get("config")->get("broker"));
-
-        $bindDependencies && $this->bindBrokerDependencies();
-    }
-
-    /**
-     * @return void
-     */
-    private function bindBrokerDependencies(): void
-    {
-        $this->add(ContractsManagerInterface::class, ContractsManager::class)
-            ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator()]);
-
-        $this->add('brokerStreamConnection', function ($contractsManager) {
-            return new AMQPStreamConnection(...$contractsManager->toStreamConnectionFunctionArguments());
-        })->addArgument(ContractsManagerInterface::class);
-
-        $this->add(MessageHandlerInterface::class, MessageHandler::class);
-
-        $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
-            ->addArgument($this)->setShared(false);
-
-        $this->add(PublisherStreamerInterface::class, PublisherStreamer::class)
-            ->addArgument($this)->setShared(false);
-    }
+//    /**
+//     * @return void
+//     */
+//    private function bindBrokerDependencies(): void
+//    {
+//        $this->add(ContractsManagerInterface::class, ContractsManager::class)
+//            ->addArguments([BrokerConfigurationInterface::class, new ContractsValidator()]);
+//
+//        $this->add('brokerStreamConnection', function ($contractsManager) {
+//            return new AMQPStreamConnection(...$contractsManager->toStreamConnectionFunctionArguments());
+//        })->addArgument(ContractsManagerInterface::class);
+//
+//        $this->add(MessageHandlerInterface::class, MessageHandler::class);
+//
+//        $this->add(SubscriberStreamerInterface::class, SubscriberStreamer::class)
+//            ->addArgument($this)->setShared(false);
+//
+//        $this->add(PublisherStreamerInterface::class, PublisherStreamer::class)
+//            ->addArgument($this)->setShared(false);
+//    }
 
     /**
      * @return void
@@ -218,7 +218,7 @@ class Application extends Container
      */
     private function bootstrapContainer(): void
     {
-        // Add singletons
+        // Add aliases
         $this->add(LoggerApplicationContextInterface::class, LoggerApplicationContext::class);
         $this->add(LoggerInterface::class, (new LoggerFactory($this->basePath))($this));
         $this->add('config', new Configuration(

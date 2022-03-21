@@ -33,10 +33,6 @@ class ThreadsServiceProvider extends AbstractServiceProvider
             ->setShared(false);
 
         $container->add(ThreadsManagerInterface::class, ThreadsManager::class)
-            ->addArguments([
-                ThreadsConfigurationInterface::class,
-                new Events(),
-                LoggerInterface::class
-            ]);
+            ->addArguments([ThreadsConfigurationInterface::class, new Events(), LoggerInterface::class]);
     }
 }

@@ -8,24 +8,19 @@ use Chassis\Application;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\MessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
+use function Chassis\Helpers\app;
 
 class RouteDispatcher implements RouteDispatcherInterface
 {
     private Application $application;
-    private OutboundBusAdapterInterface $outboundBusAdapter;
 
     /**
      * @param Application $application
-     * @param OutboundBusAdapterInterface $outboundBusAdapter
      */
-    public function __construct(
-        Application $application,
-        OutboundBusAdapterInterface $outboundBusAdapter
-    ) {
+    public function __construct(Application $application)
+    {
         $this->application = $application;
-        $this->outboundBusAdapter = $outboundBusAdapter;
     }
 
     /**
@@ -43,9 +38,11 @@ class RouteDispatcher implements RouteDispatcherInterface
     /**
      * @inheritdoc
      */
-    public function dispatchResponse(OutboundMessageInterface $message, InboundMessageInterface $context)
+    public function dispatchResponse(OutboundMessageInterface $response, InboundMessageInterface $context)
     {
-        return $this->outboundBusAdapter->pushResponse($message, $context);
+        /** @var OutboundBusAdapterInterface $outboundBusAdapter */
+        $outboundBusAdapter = app(OutboundBusAdapterInterface::class);
+        return $outboundBusAdapter->pushResponse($response, $context);
     }
 
     /**

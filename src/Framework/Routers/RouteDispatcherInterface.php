@@ -19,10 +19,10 @@ interface RouteDispatcherInterface
     public function dispatch($service, MessageInterface $message);
 
     /**
-     * @param OutboundMessageInterface $message
+     * @param OutboundMessageInterface $response
      * @param InboundMessageInterface $context
      *
      * @return null
      */
-    public function dispatchResponse(OutboundMessageInterface $message, InboundMessageInterface $context);
+    public function dispatchResponse(OutboundMessageInterface $response, InboundMessageInterface $context);
 }

@@ -113,6 +113,10 @@ class ThreadInstance implements ThreadInstanceInterface
 
     /**
      * @return string
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ThreadInstanceException
      */
     public function spawn(): string
     {
