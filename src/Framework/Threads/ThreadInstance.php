@@ -7,7 +7,10 @@ namespace Chassis\Framework\Threads;
 use Chassis\Application;
 use Chassis\Framework\Adapters\Inbound\InboundBusAdapter;
 use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
+use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
+use Chassis\Framework\Adapters\Message\OutboundMessage;
+use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
 use Chassis\Framework\AsyncApi\AsyncContract;
@@ -229,10 +232,14 @@ class ThreadInstance implements ThreadInstanceInterface
                     var_dump([__METHOD__, __LINE__]);
 
                     // general adapters
+                    $app->add(MessageBusInterface::class, AMQPMessageBus::class);
+                    $app->add(TransformersInterface::class, AMQPTransformer::class);
+                    $app->add(InboundMessageInterface::class, InboundMessage::class)
+                        ->addArgument(MessageBusInterface::class);
+                    $app->add(OutboundMessageInterface::class, OutboundMessage::class)
+                        ->addArgument(MessageBusInterface::class);
                     $app->add(AMQPConnectorInterface::class, AMQPConnector::class)
                         ->addArgument(AsyncContractInterface::class);
-                    $app->add(TransformersInterface::class, AMQPTransformer::class);
-                    $app->add(MessageBusInterface::class, AMQPMessageBus::class);
                     $app->add(InboundBusInterface::class, AMQPInboundBus::class)
                         ->addArguments([
                             AMQPConnectorInterface::class,
@@ -266,14 +273,14 @@ class ThreadInstance implements ThreadInstanceInterface
                     var_dump([__METHOD__, __LINE__]);
 
                     // inbound adapters
+                    $app->add(InboundRouterInterface::class, $inboundRouter);
                     $app->add(InboundBusAdapterInterface::class, InboundBusAdapter::class)
                         ->addArgument(InboundBusInterface::class);
-                    $app->add(InboundRouterInterface::class, $inboundRouter);
 
                     // outbound adapters
+                    $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(OutboundBusAdapterInterface::class, OutboundBusAdapter::class)
                         ->addArgument(OutboundBusInterface::class);
-                    $app->add(OutboundRouterInterface::class, $outboundRouter);
                     $app->add(CacheFactoryInterface::class, function ($configuration) {
                         return (new CacheFactory($configuration))->build();
                     })->addArgument($app->get('config')->get('cache'));
