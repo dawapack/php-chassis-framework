@@ -177,7 +177,7 @@ class ThreadInstance implements ThreadInstanceInterface
      */
     private function createFuture(string $threadId): ?Future
     {
-        var_dump([__METHOD__, $threadId]);
+        var_dump([__METHOD__, $threadId, $this->threadConfiguration->toArray()]);
         // Create parallel runtime - inject vendor autoload as bootstrap
         try {
             $basePath = app('basePath');
@@ -262,10 +262,6 @@ class ThreadInstance implements ThreadInstanceInterface
                     app(OutboundRouterInterface::class)
                 ]
             );
-        } catch (Runtime\Error\Bootstrap $reason) {
-
-            var_dump($reason);
-
         } catch (Throwable $reason) {
             app()->logger()->error(
                 $reason->getMessage(),
