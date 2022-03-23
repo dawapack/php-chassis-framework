@@ -8,14 +8,18 @@ use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessage;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 use Chassis\Framework\Routers\OutboundRouterInterface;
+use DateTime;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
 use function Chassis\Helpers\app;
 
-class AbstractService implements ServiceInterface
+abstract class AbstractService implements ServiceInterface
 {
     protected const LOGGER_COMPONENT_PREFIX = "application_service_";
+    protected const DEFAULT_VERSION = '1.0.0';
+    protected const DEFAULT_DATETIME_FORMAT = 'Y-m-d\TH:i:s.vP';
+
     protected InboundMessageInterface $message;
 
     /**
@@ -70,6 +74,15 @@ class AbstractService implements ServiceInterface
      */
     private function createOutboundMessage($body, array $headers): OutboundMessage
     {
+        // add mandatory headers
+        $headers = array_merge(
+            $headers,
+            [
+                "version" => self::DEFAULT_VERSION,
+                "dateTime" => (new DateTime())->format(self::DEFAULT_DATETIME_FORMAT)
+            ]
+        );
+        // add job id
         if (!empty($this->message->getHeader("jobId"))) {
             $headers = array_merge($headers, ["jobId" => $this->message->getHeader("jobId")]);
         }
