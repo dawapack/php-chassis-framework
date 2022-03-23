@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace Chassis\Framework\Adapters\Operations;
 
 use Chassis\Application;
-use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
+use Chassis\Framework\Adapters\Inbound\Bus\InboundBusAdapterInterface;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
-use Chassis\Framework\Bus\Exceptions\SetupBusException;
+use Chassis\Framework\Adapters\Outbound\Bus\OutboundBusAdapterInterface;
 use Chassis\Framework\Bus\SetupBusInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-
 use Throwable;
 use function Chassis\Helpers\app;
 

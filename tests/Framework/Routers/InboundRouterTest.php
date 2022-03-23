@@ -6,7 +6,6 @@ namespace ChassisTests\Framework\Routers;
 
 use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Adapters\Message\OutboundMessage;
-use Chassis\Framework\OutboundAdapters\Broker\RouteNotFound;
 use Chassis\Framework\Routers\InboundRouter;
 use Chassis\Framework\Routers\OutboundRouter;
 use Chassis\Framework\Routers\RouteDispatcher;

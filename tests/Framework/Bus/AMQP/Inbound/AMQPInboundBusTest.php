@@ -6,10 +6,8 @@ namespace ChassisTests\Framework\Bus\AMQP\Inbound;
 
 use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\AsyncApi\AsyncContract;
-use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
 use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
-use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBusInterface;
 use Chassis\Framework\Routers\InboundRouter;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -80,8 +78,6 @@ class AMQPInboundBusTest extends TestCase
 
     /**
      * @return void
-     *
-     * @throws StreamerChannelNameNotFoundException
      */
     public function testSutCanConsume(): void
     {
@@ -98,8 +94,6 @@ class AMQPInboundBusTest extends TestCase
 
     /**
      * @return void
-     * 
-     * @throws StreamerChannelNameNotFoundException
      */
     public function testSutCanIterate(): void
     {

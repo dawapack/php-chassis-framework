@@ -7,8 +7,8 @@ namespace Chassis\Framework\Routers;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\MessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
+use Chassis\Framework\Adapters\Outbound\Bus\OutboundBusAdapter;
+use Chassis\Framework\Adapters\Outbound\Bus\OutboundBusAdapterInterface;
 use function Chassis\Helpers\app;
 
 class RouteDispatcher implements RouteDispatcherInterface

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace ChassisTests\Framework\Adapters\Inbound;
 
-use Chassis\Framework\Adapters\Inbound\InboundBusAdapter;
+use Chassis\Framework\Adapters\Inbound\Bus\InboundBusAdapter;
 use Chassis\Framework\Adapters\Message\InboundMessage;
-use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
 use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\InboundBusInterface;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit\Framework\TestCase;
@@ -39,8 +37,6 @@ class InboundBusAdapterTest extends TestCase
 
     /**
      * @return void
-     *
-     * @throws StreamerChannelNameNotFoundException
      */
     public function testSutCanConsume(): void
     {

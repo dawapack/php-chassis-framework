@@ -7,7 +7,7 @@ namespace ChassisTests\Framework\Routers;
 use Chassis\Application;
 use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Adapters\Message\OutboundMessage;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
+use Chassis\Framework\Adapters\Outbound\Bus\OutboundBusAdapter;
 use Chassis\Framework\Routers\RouteDispatcher;
 use ChassisTests\Fixtures\Services\NullService;
 use PHPUnit\Framework\TestCase;

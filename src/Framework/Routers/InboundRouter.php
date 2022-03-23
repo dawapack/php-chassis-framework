@@ -6,10 +6,9 @@ namespace Chassis\Framework\Routers;
 
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
-use Chassis\Framework\OutboundAdapters\Broker\RouteNotFound;
+use Chassis\Framework\Routers\Routes\RouteNotFound;
 use Psr\Log\LoggerInterface;
 use Throwable;
-
 use function Chassis\Helpers\app;
 
 class InboundRouter implements InboundRouterInterface

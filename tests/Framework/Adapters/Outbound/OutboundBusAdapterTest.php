@@ -6,10 +6,9 @@ namespace ChassisTests\Framework\Adapters\Outbound;
 
 use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Adapters\Message\OutboundMessage;
-use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
+use Chassis\Framework\Adapters\Outbound\Bus\OutboundBusAdapter;
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
 use Chassis\Framework\Bus\AMQP\Outbound\AMQPOutboundBus;
-use Chassis\Framework\Bus\OutboundBusInterface;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PHPUnit\Framework\TestCase;
 

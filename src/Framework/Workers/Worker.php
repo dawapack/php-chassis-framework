@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Chassis\Framework\Workers;
 
 use Chassis\Application;
-use Chassis\Framework\Adapters\Inbound\InboundBusAdapterInterface;
-use Chassis\Framework\Brokers\Exceptions\StreamerChannelIterateMaxRetryException;
-use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
+use Chassis\Framework\Adapters\Inbound\Bus\InboundBusAdapterInterface;
+use Chassis\Framework\Bus\Exceptions\ChannelBusException;
 use Chassis\Framework\Bus\SetupBusInterface;
-use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
+use Chassis\Framework\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
 use Psr\Container\ContainerExceptionInterface;
@@ -99,7 +98,7 @@ class Worker implements WorkerInterface
     /**
      * @return void
      *
-     * @throws StreamerChannelIterateMaxRetryException
+     * @throws ChannelBusException
      */
     protected function busPooling(): void
     {
@@ -110,7 +109,7 @@ class Worker implements WorkerInterface
             // retry pattern
             $this->iterateRetry++;
             if ($this->iterateRetry >= self::BUS_POOL_MAX_RETRY) {
-                throw new StreamerChannelIterateMaxRetryException("streamer channel iterate - to many retry");
+                throw new ChannelBusException("channel iterate - to many retry");
             }
             // wait before retry
             sleep(1);
@@ -121,7 +120,6 @@ class Worker implements WorkerInterface
      * @return void
      *
      * @throws ThreadConfigurationException
-     * @throws StreamerChannelNameNotFoundException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */

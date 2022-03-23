@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Bus;
 
-use Chassis\Framework\Brokers\Exceptions\StreamerChannelNameNotFoundException;
-
 interface InboundBusInterface
 {
     /**
@@ -14,8 +12,6 @@ interface InboundBusInterface
      * @param array $qos
      *
      * @return void
-     *
-     * @throws StreamerChannelNameNotFoundException
      */
     public function consume(
         string $channel,
