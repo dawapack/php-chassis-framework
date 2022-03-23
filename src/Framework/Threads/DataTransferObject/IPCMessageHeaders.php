@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework\InterProcessCommunication\DataTransferObject;
+namespace Chassis\Framework\Threads\DataTransferObject;
 
 use Spatie\DataTransferObject\DataTransferObject;
 

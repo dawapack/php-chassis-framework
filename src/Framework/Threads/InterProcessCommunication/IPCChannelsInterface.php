@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework\InterProcessCommunication;
+namespace Chassis\Framework\Threads\InterProcessCommunication;
 
-use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
+use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
 use parallel\Channel;
 
 interface IPCChannelsInterface

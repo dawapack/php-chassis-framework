@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Chassis\Framework\InterProcessCommunication\DataTransferObject;
+namespace Chassis\Framework\Threads\DataTransferObject;
 
 use Spatie\DataTransferObject\DataTransferObject;
 
 class IPCMessage extends DataTransferObject
 {
     /**
-     * @var \Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessageHeaders
+     * @var \Chassis\Framework\Threads\DataTransferObject\IPCMessageHeaders
      */
     public IPCMessageHeaders $headers;
 

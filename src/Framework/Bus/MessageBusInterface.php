@@ -11,11 +11,11 @@ use PhpAmqpLib\Message\AMQPMessage;
 interface MessageBusInterface
 {
     /**
-     * @param AMQPMessage $messageBus
+     * @param mixed $messageBus
      *
      * @return void
      */
-    public function setMessage(AMQPMessage $messageBus);
+    public function setMessage($messageBus);
 
     /**
      * @return string|array|null

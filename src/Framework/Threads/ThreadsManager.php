@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Threads;
 
-use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
-use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
+use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
+use Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels;
 use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
@@ -16,7 +16,6 @@ use parallel\Events\Event\Type as EventType;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
-
 use function Chassis\Helpers\app;
 
 class ThreadsManager implements ThreadsManagerInterface
