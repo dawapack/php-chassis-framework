@@ -31,12 +31,11 @@ class Worker implements WorkerInterface
      * @param Application $application
      * @param IPCChannelsInterface $ipcChannels
      * @param InboundBusAdapterInterface $inboundBusAdapter
-     * @param SetupBusInterface $bus
      */
     public function __construct(
         Application $application,
         IPCChannelsInterface $ipcChannels,
-        InboundBusAdapterInterface $inboundBusAdapter,
+        InboundBusAdapterInterface $inboundBusAdapter
     ) {
         $this->application = $application;
         $this->ipcChannels = $ipcChannels;

@@ -130,15 +130,17 @@ trait Bootstraps
         $this->withConfig("threads");
         $this->withConfig("broker");
         $this->withConfig("cache");
-        $this->add(WorkerInterface::class, Worker::class)
-            ->addArguments([
-                $this,
-                IPCChannelsInterface::class,
-                InboundBusAdapterInterface::class,
-                SetupBusInterface::class
-            ]);
 
         // general adapters
+        $this->add(AsyncContractInterface::class, function ($configuration, $transformer) {
+            return (new AsyncContract(
+                new ContractParser(),
+                new ContractValidator(
+                    new Validator()
+                )
+            ))->setConfiguration($configuration)
+                ->pushTransformer($transformer);
+        })->addArguments([$this->get('config')->get('broker'), TransformersInterface::class]);
         $this->add(MessageBusInterface::class, AMQPMessageBus::class);
         $this->add(TransformersInterface::class, AMQPTransformer::class);
         $this->add(InboundMessageInterface::class, InboundMessage::class)
@@ -167,15 +169,6 @@ trait Bootstraps
                 AsyncContractInterface::class,
                 LoggerInterface::class
             ]);
-        $this->add(AsyncContractInterface::class, function ($configuration, $transformer) {
-            return (new AsyncContract(
-                new ContractParser(),
-                new ContractValidator(
-                    new Validator()
-                )
-            ))->setConfiguration($configuration)
-                ->pushTransformer($transformer);
-        })->addArguments([$this->get('config')->get('broker'), TransformersInterface::class]);
 
         // inbound adapters
         $this->add(InboundRouterInterface::class, $runtimeBag->inboundRouter);
@@ -189,5 +182,12 @@ trait Bootstraps
         $this->add(CacheFactoryInterface::class, function ($configuration) {
             return (new CacheFactory($configuration))->build();
         })->addArgument($this->get('config')->get('cache'));
+
+        $this->add(WorkerInterface::class, Worker::class)
+            ->addArguments([
+                $this,
+                IPCChannelsInterface::class,
+                InboundBusAdapterInterface::class
+            ]);
     }
 }
