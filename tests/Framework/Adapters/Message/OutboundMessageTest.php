@@ -6,7 +6,7 @@ namespace ChassisTests\Framework\Adapters\Message;
 
 use Chassis\Framework\Adapters\Message\OutboundMessage;
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -38,7 +38,7 @@ class OutboundMessageTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutCanCreateAnOutboundMessage(): void
     {

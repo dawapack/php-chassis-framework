@@ -21,7 +21,8 @@ use Throwable;
  */
 class AMQPInboundBus implements AMQPInboundBusInterface
 {
-    public const ITERATE_WAIT = 0.5;
+    public const ITERATE_NO_CHANNEL_WAIT = 250; // 250ms
+    public const ITERATE_WAIT = 0.5; // 500ms
 
     private const LOGGER_COMPONENT_PREFIX = 'amqp_inbound_bus_';
 
@@ -96,12 +97,12 @@ class AMQPInboundBus implements AMQPInboundBusInterface
              */
             if (!isset($this->amqpChannel)) {
                 // wait a while - prevent CPU load
-                usleep((int)(self::ITERATE_WAIT * 1000000));
+                usleep((int)(self::ITERATE_NO_CHANNEL_WAIT * 1000));
             } else {
                 $this->amqpChannel->wait(null, false, self::ITERATE_WAIT);
             }
         } catch (AMQPTimeoutException $reason) {
-            // fault-tolerant - this is a normal behaviour
+            // timeout fault-tolerant - this is a normal behaviour
         }
 
         // heartbeat check
@@ -132,13 +133,13 @@ class AMQPInboundBus implements AMQPInboundBusInterface
                     }
                     // remove this message from the queue and do...while again
                     $message->nack();
-                    $message = null;
+                    unset($message);
                 }
                 // wait a while - prevent CPU load
                 usleep(5000);
             } while ($until > time());
             // timed out?
-            if (!($message instanceof AMQPMessage)) {
+            if (!isset($message) || !($message instanceof AMQPMessage)) {
                 $amqpChannel->close();
                 return null;
             }

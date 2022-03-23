@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Adapters\Message;
 
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use JsonException;
 
 interface InboundMessageInterface extends MessageInterface
@@ -13,7 +13,7 @@ interface InboundMessageInterface extends MessageInterface
      * @return mixed
      *
      * @throws JsonException
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function getBody();
 

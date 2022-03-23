@@ -25,7 +25,6 @@ class Worker implements WorkerInterface
     private Application $application;
     private IPCChannelsInterface $ipcChannels;
     private InboundBusAdapterInterface $inboundBusAdapter;
-    private SetupBusInterface $bus;
     private int $iterateRetry = 0;
 
     /**
@@ -38,12 +37,10 @@ class Worker implements WorkerInterface
         Application $application,
         IPCChannelsInterface $ipcChannels,
         InboundBusAdapterInterface $inboundBusAdapter,
-        SetupBusInterface $bus
     ) {
         $this->application = $application;
         $this->ipcChannels = $ipcChannels;
         $this->inboundBusAdapter = $inboundBusAdapter;
-        $this->bus = $bus;
     }
 
     /**
@@ -134,11 +131,11 @@ class Worker implements WorkerInterface
         $threadConfiguration = $this->application->get('threadConfiguration');
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
-                // message bus setup
-                $this->bus->setup();
+                /** @var SetupBusInterface $bus */
+                $bus = $this->application->get(SetupBusInterface::class);
+                $bus->setup();
                 break;
             case "configuration":
-                // TODO: implement configuration listener - (centralized configuration server feature)
                 break;
             case "worker":
                 // wait a while - infrastructure must declare exchanges, queues & bindings

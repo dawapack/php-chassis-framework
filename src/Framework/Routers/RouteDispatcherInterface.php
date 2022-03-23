@@ -11,12 +11,12 @@ use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 interface RouteDispatcherInterface
 {
     /**
-     * @param array|string $service
+     * @param array|string $operationHandler
      * @param MessageInterface $message
      *
      * @return InboundMessageInterface|OutboundMessageInterface|null
      */
-    public function dispatch($service, MessageInterface $message);
+    public function dispatch($operationHandler, MessageInterface $message);
 
     /**
      * @param OutboundMessageInterface $response

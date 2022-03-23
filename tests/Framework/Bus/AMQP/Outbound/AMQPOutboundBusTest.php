@@ -10,7 +10,7 @@ use Chassis\Framework\AsyncApi\AsyncContract;
 use Chassis\Framework\AsyncApi\Transformers\AMQPTransformer;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use Chassis\Framework\Bus\AMQP\Outbound\AMQPOutboundBus;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -74,7 +74,7 @@ class AMQPOutboundBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      * @throws Throwable
      */
     public function testSutCanPublish(): void

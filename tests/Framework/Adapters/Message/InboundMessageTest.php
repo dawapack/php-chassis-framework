@@ -6,7 +6,7 @@ namespace ChassisTests\Framework\Adapters\Message;
 
 use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use ChassisTests\Traits\AMQPMessageTrait;
 use JsonException;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -39,7 +39,7 @@ class InboundMessageTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      * @throws JsonException
      */
     public function testSutCanGetBody(): void

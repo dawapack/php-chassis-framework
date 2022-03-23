@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Adapters\Message;
 
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use PhpAmqpLib\Message\AMQPMessage;
 
 interface OutboundMessageInterface extends MessageInterface
@@ -47,9 +47,14 @@ interface OutboundMessageInterface extends MessageInterface
     public function setProperty(string $name, $value): self;
 
     /**
+     * @return $this
+     */
+    public function setDefaultProperties(): self;
+
+    /**
      * @return mixed|AMQPMessage
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function toMessageBus();
 }

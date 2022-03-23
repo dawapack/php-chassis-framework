@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Bus;
 
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use JsonException;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -21,7 +21,7 @@ interface MessageBusInterface
      * @return string|array|null
      *
      * @throws JsonException
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function getBody();
 
@@ -36,6 +36,11 @@ interface MessageBusInterface
      * @return mixed|null
      */
     public function getProperty(string $name);
+
+    /**
+     * @return array
+     */
+    public function getDefaultProperties(): array;
 
     /**
      * @return array
@@ -56,7 +61,7 @@ interface MessageBusInterface
      *
      * @return mixed
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function convert($body, array $properties, array $headers);
 }

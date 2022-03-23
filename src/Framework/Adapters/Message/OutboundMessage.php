@@ -20,7 +20,9 @@ class OutboundMessage extends AbstractMessage implements OutboundMessageInterfac
      */
     public function setHeaders(array $headers): OutboundMessage
     {
-        $this->headers = $headers;
+        $this->headers = isset($this->headers)
+            ? array_merge($this->headers, $headers)
+            : $headers;
         return $this;
     }
 
@@ -52,6 +54,16 @@ class OutboundMessage extends AbstractMessage implements OutboundMessageInterfac
     {
         $this->properties[$name] = $value;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setDefaultProperties(): OutboundMessage
+    {
+        return $this->setProperties(
+            $this->messageBus->getDefaultProperties()
+        );
     }
 
     /**

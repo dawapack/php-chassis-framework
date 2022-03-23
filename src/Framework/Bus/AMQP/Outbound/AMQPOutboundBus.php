@@ -8,7 +8,7 @@ use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 use Chassis\Framework\AsyncApi\AsyncContractInterface;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use Chassis\Framework\Bus\AMQP\Outbound\AckNackHandlers\PublishAckHandler;
 use Chassis\Framework\Bus\AMQP\Outbound\AckNackHandlers\PublishNackHandler;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -73,6 +73,9 @@ class AMQPOutboundBus implements AMQPOutboundBusInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function publishResponse(OutboundMessageInterface $message, InboundMessageInterface $context)
     {
         // a response must have a routing key
@@ -112,7 +115,7 @@ class AMQPOutboundBus implements AMQPOutboundBusInterface
      *
      * @return array
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     protected function toBasicPublishArguments(
         OutboundMessageInterface $message,

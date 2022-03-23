@@ -40,12 +40,12 @@ class InboundRouter implements InboundRouterInterface
      */
     public function route(?string $operation, InboundMessageInterface $message): void
     {
-        $service = $this->routes[$operation] ?? RouteNotFound::class;
-        $response = $this->dispatcher->dispatch($service, $message);
+        $operationHandler = $this->routes[$operation] ?? RouteNotFound::class;
+        $response = $this->dispatcher->dispatch($operationHandler, $message);
 
         try {
             if ($response instanceof OutboundMessageInterface) {
-                /** @var OutboundRouterInterface $outboundRouter */
+                /** @var OutboundRouter $outboundRouter */
                 $outboundRouter = app(OutboundRouterInterface::class);
                 $outboundRouter->route(null, $response, $message);
             }

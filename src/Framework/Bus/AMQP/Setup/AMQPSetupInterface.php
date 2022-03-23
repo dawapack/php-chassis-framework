@@ -25,4 +25,11 @@ interface AMQPSetupInterface extends SetupBusInterface
      * @return bool
      */
     public function purge(string $channel): bool;
+
+    /**
+     * @param array $options
+     *
+     * @return string|null
+     */
+    public function setupCallbackQueue(array $options = []): ?string;
 }

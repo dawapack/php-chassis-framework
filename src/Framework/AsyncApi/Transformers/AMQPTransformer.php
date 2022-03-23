@@ -80,7 +80,10 @@ class AMQPTransformer implements TransformersInterface
     {
         $this->connection = array_merge(
             $this->connectionOptions,
-            array_intersect_key($connection, $this->connectionOptions)
+            array_intersect_key(
+                $connection,
+                $this->connectionOptions
+            )
         );
 
         return $this;
@@ -115,7 +118,10 @@ class AMQPTransformer implements TransformersInterface
     {
         $arguments = array_merge(
             $this->consumerOptions,
-            array_intersect_key($options, $this->consumerOptions),
+            array_intersect_key(
+                $options,
+                $this->consumerOptions
+            ),
             [
                 'queue' => $this->channelBindings->name,
                 'no_ack' => !($this->operationBindings->ack ?? true),
@@ -157,6 +163,29 @@ class AMQPTransformer implements TransformersInterface
                 $options,
                 $this->queueDeclareOptions
             )
+        );
+
+        return $onlyValues ? array_values($arguments) : $arguments;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function toCallbackQueueDeclareArguments(array $options, bool $onlyValues = true): array
+    {
+        $arguments = array_merge(
+            $this->queueDeclareOptions,
+            array_intersect_key(
+                $options,
+                $this->queueDeclareOptions
+            ),
+            [
+                'name' => '',
+                'passive' => false,
+                'durable' => false,
+                'exclusive' => true,
+                'autoDelete' => false,
+            ]
         );
 
         return $onlyValues ? array_values($arguments) : $arguments;

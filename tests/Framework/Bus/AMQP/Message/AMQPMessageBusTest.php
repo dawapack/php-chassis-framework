@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace ChassisTests\Framework\Bus\AMQP\Message;
 
 use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
-use Chassis\Framework\Bus\AMQP\Message\Exceptions\MessageBodyContentTypeException;
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use ChassisTests\Traits\AMQPMessageTrait;
 use JsonException;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -43,7 +43,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      * @throws JsonException
      */
     public function testSutCanSetAnAmqpMessageHavingJsonContentTypeAndReturnTheBody(): void
@@ -61,7 +61,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      * @throws JsonException
      */
     public function testSutCanSetAnAmqpMessageHavingTextContentTypeAndReturnTheBody(): void
@@ -79,7 +79,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      * @throws JsonException
      */
     public function testSutCanSetAnAmqpMessageHavingGzipContentTypeAndReturnTheBody(): void
@@ -97,7 +97,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutCanConvertJsonBodyFormatAndCustomPropertiesDataIntoAnAmqpMessage(): void
     {
@@ -118,7 +118,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutCanConvertTextBodyFormatAndCustomPropertiesDataIntoAnAmqpMessage(): void
     {
@@ -139,7 +139,7 @@ class AMQPMessageBusTest extends TestCase
     /**
      * @return void
      *
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutCanConvertGzipBodyFormatAndCustomPropertiesDataIntoAnAmqpMessage(): void
     {
@@ -193,7 +193,7 @@ class AMQPMessageBusTest extends TestCase
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionWithTextContentTypeAndArrayBodyFormat(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
 
         $messageProperties = $this->createAMQPMessageProperties(AMQPMessageBus::TEXT_CONTENT_TYPE);
         $originalBody = ["unit" => "tests"];
@@ -206,7 +206,7 @@ class AMQPMessageBusTest extends TestCase
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionWithJsonContentTypeAndTextBodyFormat(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
 
         $messageProperties = $this->createAMQPMessageProperties(AMQPMessageBus::JSON_CONTENT_TYPE);
         $originalBody = "this string is not allowed for json content type";
@@ -219,7 +219,7 @@ class AMQPMessageBusTest extends TestCase
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionWithGzipContentTypeAndBooleanBodyFormat(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
 
         $messageProperties = $this->createAMQPMessageProperties(AMQPMessageBus::GZIP_CONTENT_TYPE);
         $originalBody = false;
@@ -232,7 +232,7 @@ class AMQPMessageBusTest extends TestCase
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionWithUnknownContentType(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
         $messageProperties = $this->createAMQPMessageProperties("application/unknown");
 
         $this->sut->convert(false, $messageProperties, ["jobId" => Uuid::uuid4()->toString()]);
@@ -242,11 +242,11 @@ class AMQPMessageBusTest extends TestCase
      * @return void
      *
      * @throws JsonException
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionOnDecodingUnexpectedGzipBodyFormat(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
 
         $messageProperties = $this->createAMQPMessageProperties(AMQPMessageBus::GZIP_CONTENT_TYPE);
         $originalBody = "this is not a valid gzip encoded format";
@@ -259,7 +259,7 @@ class AMQPMessageBusTest extends TestCase
      * @return void
      *
      * @throws JsonException
-     * @throws MessageBodyContentTypeException
+     * @throws MessageBusException
      */
     public function testSutMustThrowJsonExceptionOnDecodingUnexpectedJsonBodyFormat(): void
     {
@@ -279,7 +279,7 @@ class AMQPMessageBusTest extends TestCase
      */
     public function testSutMustThrowMessageBodyContentTypeExceptionOnDecodingUnhandledContentType(): void
     {
-        $this->expectException(MessageBodyContentTypeException::class);
+        $this->expectException(MessageBusException::class);
 
         $messageProperties = $this->createAMQPMessageProperties("application/unknown");
         $originalBody = "[]";

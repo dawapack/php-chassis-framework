@@ -63,4 +63,12 @@ interface TransformersInterface
      * @return array
      */
     public function toQueueDeclareArguments(array $options, bool $onlyValues = true): array;
+
+    /**
+     * @param array $options
+     * @param bool $onlyValues
+     *
+     * @return array
+     */
+    public function toCallbackQueueDeclareArguments(array $options, bool $onlyValues = true): array;
 }

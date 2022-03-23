@@ -6,6 +6,7 @@ namespace Chassis\Framework\Bus\AMQP\Setup;
 
 use Chassis\Framework\AsyncApi\AsyncContractInterface;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
+use Chassis\Framework\Bus\Exceptions\SetupBusException;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use Psr\Log\LoggerInterface;
@@ -42,20 +43,27 @@ class AMQPSetup implements AMQPSetupInterface
      */
     public function setup(bool $passive = true): void
     {
-        try {
-            // declare queues & exchanges
-            $this->declareChannels($passive);
-            // declare bindings
-            $this->declareBindings();
-        } catch (Throwable $reason) {
-            $this->logger->error(
-                $reason->getMessage(),
-                [
-                    "component" => self::LOGGER_COMPONENT_PREFIX . "setup_exception",
-                    "error" => $reason
-                ]
-            );
-        }
+        // declare queues & exchanges
+        $this->declareChannels($passive);
+        // declare bindings
+        $this->declareBindings();
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return string|null
+     */
+    public function setupCallbackQueue(array $options = []): ?string
+    {
+        $amqpChannel = $this->connector->getChannel();
+        // declare queue
+        list($queueName) = $amqpChannel->queue_declare(
+            ...$this->asyncContract->getTransformer()->toCallbackQueueDeclareArguments([])
+        );
+        $this->closeAmqpChannel($amqpChannel);
+
+        return $queueName ?? null;
     }
 
     /**
@@ -72,24 +80,12 @@ class AMQPSetup implements AMQPSetupInterface
         }
 
         $amqpChannel = $this->connector->getChannel();
-        $purged = false;
-        try {
-            $amqpChannel->queue_purge(
-                $this->asyncContract->getChannelBindings($channel)->name
-            );
-            $purged = true;
-        } catch (Throwable $reason) {
-            $this->logger->error(
-                $reason->getMessage(),
-                [
-                    "component" => self::LOGGER_COMPONENT_PREFIX . "purge_exception",
-                    "error" => $reason
-                ]
-            );
-        }
+        $amqpChannel->queue_purge(
+            $this->asyncContract->getChannelBindings($channel)->name
+        );
         $this->closeAmqpChannel($amqpChannel);
 
-        return $purged;
+        return true;
     }
 
     /**
@@ -205,6 +201,10 @@ class AMQPSetup implements AMQPSetupInterface
         string $channelBindingName,
         string $rule
     ): void {
+        /**
+         * element[0] = exchange name OR queue name
+         * element[1] = routing key
+         */
         $ruleElements = explode("|", $rule);
         if (count($ruleElements) != 2) {
             return;

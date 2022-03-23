@@ -7,6 +7,7 @@ namespace Chassis\Framework\Routers;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\MessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
+use Chassis\Framework\Adapters\Outbound\OutboundBusAdapter;
 use Chassis\Framework\Adapters\Outbound\OutboundBusAdapterInterface;
 use function Chassis\Helpers\app;
 
@@ -16,13 +17,13 @@ class RouteDispatcher implements RouteDispatcherInterface
     /**
      * @inheritdoc
      */
-    public function dispatch($service, MessageInterface $message)
+    public function dispatch($operationHandler, MessageInterface $message)
     {
-        // service resolver
-        $resolvedService = $this->serviceResolver($service, $message);
-        return $resolvedService->invokable
-            ? ($resolvedService->instance)($message, app())
-            : $resolvedService->instance->{$resolvedService->method}();
+        // handler resolver
+        $handler = $this->handlerResolver($operationHandler, $message);
+        return $handler->invokable
+            ? ($handler->instance)($message)
+            : $handler->instance->{$handler->method}();
     }
 
     /**
@@ -30,35 +31,35 @@ class RouteDispatcher implements RouteDispatcherInterface
      */
     public function dispatchResponse(OutboundMessageInterface $response, InboundMessageInterface $context)
     {
-        /** @var OutboundBusAdapterInterface $outboundBusAdapter */
+        /** @var OutboundBusAdapter $outboundBusAdapter */
         $outboundBusAdapter = app(OutboundBusAdapterInterface::class);
         return $outboundBusAdapter->pushResponse($response, $context);
     }
 
     /**
-     * @param array|string $service
+     * @param array|string $operationHandler
      * @param MessageInterface $message
      *
      * @return object
      */
-    protected function serviceResolver($service, MessageInterface $message): object
+    protected function handlerResolver($operationHandler, MessageInterface $message): object
     {
-        $resolvedService = (object)[
+        $resolvedHandler = (object)[
             'invokable' => false,
             'instance' => null,
             'class' => null,
             'method' => null,
         ];
-        if (is_string($service)) {
-            $resolvedService->invokable = true;
-            $resolvedService->instance = new $service();
+        if (is_string($operationHandler)) {
+            $resolvedHandler->invokable = true;
+            $resolvedHandler->instance = new $operationHandler();
 
-            return $resolvedService;
+            return $resolvedHandler;
         }
 
-        list($resolvedService->class, $resolvedService->method) = $service;
-        $resolvedService->instance = new $resolvedService->class($message, app());
+        list($resolvedHandler->class, $resolvedHandler->method) = $operationHandler;
+        $resolvedHandler->instance = new $resolvedHandler->class($message);
 
-        return $resolvedService;
+        return $resolvedHandler;
     }
 }
