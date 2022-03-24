@@ -33,15 +33,23 @@ abstract class AbstractService implements ServiceInterface
 
     /**
      * @param ApplicationMessageInterface $applicationMessage
+     * @param int $statusCode
+     * @param string $statusMessage
      *
      * @return OutboundMessage
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function response(ApplicationMessageInterface $applicationMessage): OutboundMessage
-    {
-        return $this->createOutboundMessage($applicationMessage);
+    public function response(
+        ApplicationMessageInterface $applicationMessage,
+        int $statusCode,
+        string $statusMessage = ""
+    ): OutboundMessage {
+        return $this->createOutboundMessage(
+            $applicationMessage,
+            ["statusCode" => $statusCode, "statusMessage" => $statusMessage]
+        );
     }
 
     /**
@@ -61,16 +69,20 @@ abstract class AbstractService implements ServiceInterface
 
     /**
      * @param ApplicationMessageInterface $applicationMessage
+     * @param array $headers
      *
      * @return OutboundMessage
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function createOutboundMessage(ApplicationMessageInterface $applicationMessage): OutboundMessage
-    {
+    private function createOutboundMessage(
+        ApplicationMessageInterface $applicationMessage,
+        array $headers = []
+    ): OutboundMessage {
         // add mandatory headers
         $headers = array_merge(
+            $headers,
             $applicationMessage->getHeaders(),
             [
                 "version" => self::DEFAULT_VERSION,
