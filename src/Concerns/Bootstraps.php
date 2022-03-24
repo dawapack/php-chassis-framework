@@ -141,12 +141,16 @@ trait Bootstraps
             ))->setConfiguration($configuration)
                 ->pushTransformer($transformer);
         })->addArguments([$this->get('config')->get('broker'), TransformersInterface::class]);
-        $this->add(MessageBusInterface::class, AMQPMessageBus::class);
-        $this->add(TransformersInterface::class, AMQPTransformer::class);
+        $this->add(MessageBusInterface::class, AMQPMessageBus::class)
+            ->setShared(false);
+        $this->add(TransformersInterface::class, AMQPTransformer::class)
+            ->setShared(false);
         $this->add(InboundMessageInterface::class, InboundMessage::class)
-            ->addArgument(MessageBusInterface::class);
+            ->addArgument(MessageBusInterface::class)
+            ->setShared(false);
         $this->add(OutboundMessageInterface::class, OutboundMessage::class)
-            ->addArgument(MessageBusInterface::class);
+            ->addArgument(MessageBusInterface::class)
+            ->setShared(false);
         $this->add(AMQPConnectorInterface::class, AMQPConnector::class)
             ->addArgument(AsyncContractInterface::class);
         $this->add(InboundBusInterface::class, AMQPInboundBus::class)
