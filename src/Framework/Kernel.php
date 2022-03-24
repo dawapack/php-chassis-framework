@@ -35,10 +35,16 @@ class Kernel implements KernelInterface
      */
     public function boot(): void
     {
-        if ($this->app->isWorker()) {
-            ($this->app->get(WorkerInterface::class))->start();
-        } elseif ($this->app->isDaemon()) {
-            ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
+        try {
+
+            if ($this->app->isWorker()) {
+                ($this->app->get(WorkerInterface::class))->start();
+            } elseif ($this->app->isDaemon()) {
+                ($this->app->get(ThreadsManagerInterface::class))->start($this->stopRequested);
+            }
+
+        } catch (\Throwable $reason) {
+            var_dump($reason->getTraceAsString());
         }
     }
 
