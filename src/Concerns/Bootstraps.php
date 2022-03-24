@@ -153,8 +153,8 @@ trait Bootstraps
             ->addArguments([
                 AMQPConnectorInterface::class,
                 AsyncContractInterface::class,
-                InboundMessageInterface::class,
                 InboundRouterInterface::class,
+                MessageBusInterface::class,
                 LoggerInterface::class
             ]);
         $this->add(OutboundBusInterface::class, AMQPOutboundBus::class)
