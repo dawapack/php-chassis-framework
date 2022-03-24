@@ -15,20 +15,12 @@ interface ApplicationMessageInterface
     public function setHeader(string $name, $value): self;
 
     /**
-     * @param int $code
-     * @param string $message
-     *
-     * @return $this
+     * @return array
      */
-    public function setStatus(int $code, string $message): self;
+    public function toResponse(): array;
 
     /**
      * @return array
      */
-    public function getHeaders(): array;
-
-    /**
-     * @return array
-     */
-    public function getPayload(): array;
+    public function toRequest(): array;
 }
