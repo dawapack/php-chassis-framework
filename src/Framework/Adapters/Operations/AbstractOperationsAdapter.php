@@ -70,7 +70,16 @@ abstract class AbstractOperationsAdapter implements OperationsAdapterInterface
     {
         try {
             $this->message = $message;
-            return $this->push();
+            // bus push
+            $this->push();
+            // bus pull - sync over async operation
+            if ($this->isSyncOverAsync === true) {
+                return $this->inboundBusAdapter->get(
+                    $this->replyTo,
+                    $this->message->getProperty("correlation_id"),
+                    $this->getTimeout
+                );
+            }
         } catch (Throwable $reason) {
             $this->application->logger()->error(
                 $reason->getMessage(),
@@ -85,47 +94,34 @@ abstract class AbstractOperationsAdapter implements OperationsAdapterInterface
     }
 
     /**
-     * @return InboundMessageInterface|null
+     * @return void
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function push(): ?InboundMessageInterface
+    private function push(): void
     {
         if ($this->isSyncOverAsync === true) {
-            $this->channelName = "";
-            $this->replyTo = $this->getCallbackQueue();
+            $this->channelName = "amqp/default";
+            $this->setReplyTo();
         }
+        $this->message->setProperty("reply_to", $this->replyTo ?? null);
         $this->message->setProperty("type", $this->operation);
 
         $this->outboundBusAdapter->push($this->message, $this->channelName, $this->routingKey);
-
-        if ($this->isSyncOverAsync === true) {
-            return $this->inboundBusAdapter->get(
-                $this->replyTo,
-                $this->message->getProperty("correlation_id"),
-                $this->getTimeout
-            );
-        }
-
-        return null;
     }
 
     /**
-     * @return string
+     * @return void
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function getCallbackQueue(): string
+    private function setReplyTo(): void
     {
-        if ($this->application->has("activeRpcResponsesQueue")) {
-            return $this->application->get("activeRpcResponsesQueue");
+        if (!$this->application->has("activeRpcResponsesQueue")) {
+            $this->application->add("activeRpcResponsesQueue", $this->bus->setupCallbackQueue());
         }
-        // create the queue if not exists
-        $queueName = $this->bus->setupCallbackQueue();
-        $this->application->add("activeRpcResponsesQueue", $queueName);
-
-        return $queueName;
+        $this->replyTo = $this->application->get("activeRpcResponsesQueue");
     }
 }
