@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chassis\Framework\Adapters\Message;
 
 use Chassis\Framework\Bus\MessageBusInterface;
+use Throwable;
 
 class AbstractMessage implements MessageInterface
 {
@@ -23,12 +24,16 @@ class AbstractMessage implements MessageInterface
     public function __construct(MessageBusInterface $messageBus)
     {
         $this->messageBus = $messageBus;
-        // extract properties, headers and body
-        $this->properties = $messageBus->getProperties();
-        $this->headers = $messageBus->getHeaders();
-        $this->body = $messageBus->getBody();
-        // cleanup properties
-        unset($this->properties["application_headers"]);
+        try {
+            // extract properties, headers and body
+            $this->properties = $messageBus->getProperties();
+            $this->headers = $messageBus->getHeaders();
+            $this->body = $messageBus->getBody();
+            // cleanup properties
+            unset($this->properties["application_headers"]);
+        } catch (Throwable $reason) {
+            // must be fault-tolerant
+        }
     }
 
     /**
