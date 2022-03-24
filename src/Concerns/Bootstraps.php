@@ -118,7 +118,7 @@ trait Bootstraps
         /**
          * Add channels to IPC instance
          *
-         * @var ParallelChannels $channels
+         * @var \Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels $channels
          */
         $channels = $this->get(IPCChannelsInterface::class);
         $channels->setWorkerChannel($runtimeBag->workerChannel, true);
@@ -141,16 +141,12 @@ trait Bootstraps
             ))->setConfiguration($configuration)
                 ->pushTransformer($transformer);
         })->addArguments([$this->get('config')->get('broker'), TransformersInterface::class]);
-        $this->add(MessageBusInterface::class, AMQPMessageBus::class)
-            ->setShared(false);
-        $this->add(TransformersInterface::class, AMQPTransformer::class)
-            ->setShared(false);
+        $this->add(MessageBusInterface::class, AMQPMessageBus::class);
+        $this->add(TransformersInterface::class, AMQPTransformer::class);
         $this->add(InboundMessageInterface::class, InboundMessage::class)
-            ->addArgument(MessageBusInterface::class)
-            ->setShared(false);
+            ->addArgument(MessageBusInterface::class);
         $this->add(OutboundMessageInterface::class, OutboundMessage::class)
-            ->addArgument(MessageBusInterface::class)
-            ->setShared(false);
+            ->addArgument(MessageBusInterface::class);
         $this->add(AMQPConnectorInterface::class, AMQPConnector::class)
             ->addArgument(AsyncContractInterface::class);
         $this->add(InboundBusInterface::class, AMQPInboundBus::class)
