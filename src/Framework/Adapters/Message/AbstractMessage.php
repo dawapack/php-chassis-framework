@@ -24,15 +24,13 @@ class AbstractMessage implements MessageInterface
     public function __construct(MessageBusInterface $messageBus)
     {
         $this->messageBus = $messageBus;
-        try {
+        if ($this->messageBus->hasMessage()) {
             // extract properties, headers and body
             $this->properties = $messageBus->getProperties();
             $this->headers = $messageBus->getHeaders();
             $this->body = $messageBus->getBody();
             // cleanup properties
             unset($this->properties["application_headers"]);
-        } catch (Throwable $reason) {
-            // must be fault-tolerant
         }
     }
 

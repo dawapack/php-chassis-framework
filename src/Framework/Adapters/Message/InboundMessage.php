@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Adapters\Message;
 
+use Chassis\Framework\Bus\MessageBusInterface;
+
 class InboundMessage extends AbstractMessage implements InboundMessageInterface
 {
     /**
@@ -33,11 +35,11 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
     /**
      * @inheritdoc
      */
-    public function setMessage($messageFromBus): void
+    public function setMessage(MessageBusInterface $messageBus): void
     {
-        $this->properties = $messageFromBus->getProperties();
-        $this->headers = $messageFromBus->getHeaders();
-        $this->body = $messageFromBus->getBody();
+        $this->properties = $messageBus->getProperties();
+        $this->headers = $messageBus->getHeaders();
+        $this->body = $messageBus->getBody();
         // cleanup properties
         unset($this->properties["application_headers"]);
 

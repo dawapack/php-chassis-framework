@@ -13,9 +13,14 @@ interface MessageBusInterface
     /**
      * @param mixed $messageBus
      *
-     * @return void
+     * @return $this
      */
-    public function setMessage($messageBus);
+    public function setMessage($messageBus): self;
+
+    /**
+     * @return bool
+     */
+    public function hasMessage(): bool;
 
     /**
      * @return string|array|null

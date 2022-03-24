@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chassis\Framework\Adapters\Message;
 
 use Chassis\Framework\Bus\Exceptions\MessageBusException;
+use Chassis\Framework\Bus\MessageBusInterface;
 use JsonException;
 
 interface InboundMessageInterface extends MessageInterface
@@ -28,9 +29,9 @@ interface InboundMessageInterface extends MessageInterface
     public function getProperties(): ?array;
 
     /**
-     * @param mixed $messageFromBus
+     * @param MessageBusInterface $messageBus
      *
      * @return void
      */
-    public function setMessage($messageFromBus): void;
+    public function setMessage(MessageBusInterface $messageBus): void;
 }

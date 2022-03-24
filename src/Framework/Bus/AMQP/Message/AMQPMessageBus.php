@@ -31,9 +31,18 @@ class AMQPMessageBus implements MessageBusInterface
     /**
      * @inheritdoc
      */
-    public function setMessage($messageBus)
+    public function setMessage($messageBus): AMQPMessageBus
     {
         $this->message = $messageBus;
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function hasMessage(): bool
+    {
+        return isset($this->message);
     }
 
     /**

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Bus\AMQP\Inbound;
 
+use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\AsyncApi\AsyncContract;
 use Chassis\Framework\AsyncApi\AsyncContractInterface;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
+use Chassis\Framework\Bus\MessageBusInterface;
 use Chassis\Framework\Routers\InboundRouterInterface;
 use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -28,8 +30,8 @@ class AMQPInboundBus implements AMQPInboundBusInterface
 
     private AMQPConnectorInterface $connector;
     private AsyncContractInterface $asyncContract;
-    private InboundMessageInterface $inboundMessage;
     private InboundRouterInterface $inboundRouter;
+    private MessageBusInterface $messageBus;
     private LoggerInterface $logger;
     private AMQPChannel $amqpChannel;
     private string $channel;
@@ -50,21 +52,21 @@ class AMQPInboundBus implements AMQPInboundBusInterface
     /**
      * @param AMQPConnectorInterface $connector
      * @param AsyncContract $asyncContract
-     * @param InboundMessageInterface $inboundMessage
      * @param InboundRouterInterface $inboundRouter
+     * @param MessageBusInterface $messageBus
      * @param LoggerInterface $logger
      */
     public function __construct(
         AMQPConnectorInterface $connector,
         AsyncContractInterface $asyncContract,
-        InboundMessageInterface $inboundMessage,
         InboundRouterInterface $inboundRouter,
+        MessageBusInterface $messageBus,
         LoggerInterface $logger
     ) {
         $this->connector = $connector;
         $this->asyncContract = $asyncContract;
-        $this->inboundMessage = $inboundMessage;
         $this->inboundRouter = $inboundRouter;
+        $this->messageBus = $messageBus;
         $this->logger = $logger;
     }
 
@@ -145,9 +147,10 @@ class AMQPInboundBus implements AMQPInboundBusInterface
             }
             // ack the message - mandatory
             $message->ack();
-            // need to clone inbound message
-            $inboundMessage = clone $this->inboundMessage;
-            $inboundMessage->setMessage($message);
+            // create inbound message instance
+            $inboundMessage = new InboundMessage(
+                (clone $this->messageBus)->setMessage($message)
+            );
         } catch (Throwable $reason) {
             $this->logger->error(
                 $reason->getMessage(),
@@ -190,9 +193,10 @@ class AMQPInboundBus implements AMQPInboundBusInterface
         return function (AMQPMessage $message) use ($_this) {
             $ackMessage = ($_this->asyncContract->getOperationBindings($_this->channel))->ack ?? true;
             try {
-                // need to clone inbound message
-                $inboundMessage = clone $_this->inboundMessage;
-                $inboundMessage->setMessage($message);
+                // create inbound message instance
+                $inboundMessage = new InboundMessage(
+                    (clone $this->messageBus)->setMessage($message)
+                );
                 // route the message
                 $_this->inboundRouter->route(
                     $inboundMessage->getProperty("type"),
