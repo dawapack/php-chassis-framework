@@ -44,7 +44,7 @@ class Kernel implements KernelInterface
             }
 
         } catch (\Throwable $reason) {
-            var_dump($reason);
+            var_dump($reason->getTraceAsString());
         }
     }
 
