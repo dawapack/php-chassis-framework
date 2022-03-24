@@ -15,12 +15,15 @@ interface ApplicationMessageInterface
     public function setHeader(string $name, $value): self;
 
     /**
-     * @return array
+     * @param int $code
+     * @param string $message
+     *
+     * @return OutboundMessageInterface
      */
-    public function toResponse(): array;
+    public function toResponse(int $code, string $message = ""): OutboundMessageInterface;
 
     /**
-     * @return array
+     * @return OutboundMessageInterface
      */
-    public function toRequest(): array;
+    public function toRequest(): OutboundMessageInterface;
 }
