@@ -9,6 +9,7 @@ use Chassis\Framework\Bus\MessageBusInterface;
 class AbstractMessage implements MessageInterface
 {
     protected MessageBusInterface $messageBus;
+
     /**
      * @var string|array|object
      */
@@ -22,6 +23,12 @@ class AbstractMessage implements MessageInterface
     public function __construct(MessageBusInterface $messageBus)
     {
         $this->messageBus = $messageBus;
+        // extract properties, headers and body
+        $this->properties = $messageBus->getProperties();
+        $this->headers = $messageBus->getHeaders();
+        $this->body = $messageBus->getBody();
+        // cleanup properties
+        unset($this->properties["application_headers"]);
     }
 
     /**
@@ -29,7 +36,7 @@ class AbstractMessage implements MessageInterface
      */
     public function getHeader(string $name)
     {
-        return $this->messageBus->getHeader($name);
+        return $this->headers[$name] ?? null;
     }
 
     /**
@@ -37,6 +44,6 @@ class AbstractMessage implements MessageInterface
      */
     public function getProperty(string $name)
     {
-        return $this->messageBus->getProperty($name);
+        return $this->properties[$name] ?? null;
     }
 }

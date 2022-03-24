@@ -11,7 +11,7 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
      */
     public function getBody()
     {
-        return $this->messageBus->getBody();
+        return $this->body;
     }
 
     /**
@@ -19,7 +19,7 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
      */
     public function getHeaders(): ?array
     {
-        return $this->messageBus->getHeaders();
+        return $this->headers;
     }
 
     /**
@@ -27,7 +27,7 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
      */
     public function getProperties(): array
     {
-        return $this->messageBus->getProperties();
+        return $this->properties;
     }
 
     /**
@@ -35,6 +35,11 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
      */
     public function setMessage($messageFromBus): void
     {
-        $this->messageBus->setMessage($messageFromBus);
+        $this->properties = $messageFromBus->getProperties();
+        $this->headers = $messageFromBus->getHeaders();
+        $this->body = $messageFromBus->getBody();
+        // cleanup properties
+        unset($this->properties["application_headers"]);
+
     }
 }
