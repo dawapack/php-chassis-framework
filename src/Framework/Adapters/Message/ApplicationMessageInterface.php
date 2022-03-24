@@ -18,12 +18,17 @@ interface ApplicationMessageInterface
      * @param int $code
      * @param string $message
      *
-     * @return OutboundMessageInterface
+     * @return $this
      */
-    public function toResponse(int $code, string $message = ""): OutboundMessageInterface;
+    public function setStatus(int $code, string $message = ""): self;
 
     /**
-     * @return OutboundMessageInterface
+     * @return array
      */
-    public function toRequest(): OutboundMessageInterface;
+    public function getHeaders(): array;
+
+    /**
+     * @return array
+     */
+    public function getPayload(): array;
 }

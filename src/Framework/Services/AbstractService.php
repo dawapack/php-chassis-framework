@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Services;
 
+use Chassis\Framework\Adapters\Message\ApplicationMessageInterface;
 use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\Adapters\Message\OutboundMessage;
 use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
@@ -31,52 +32,46 @@ abstract class AbstractService implements ServiceInterface
     }
 
     /**
-     * @param array|object|string $body
-     * @param array $headers
+     * @param ApplicationMessageInterface $applicationMessage
      *
      * @return OutboundMessage
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function response($body, array $headers = []): OutboundMessage
+    public function response(ApplicationMessageInterface $applicationMessage): OutboundMessage
     {
-        return $this->createOutboundMessage($body, $headers);
+        return $this->createOutboundMessage($applicationMessage);
     }
 
     /**
      * @param string $operation
-     * @param array|object|string $body
-     * @param array $headers
+     * @param ApplicationMessageInterface $applicationMessage
      *
      * @return InboundMessageInterface|null
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function send(
-        string $operation,
-        $body,
-        array $headers = []
-    ): ?InboundMessageInterface {
+    public function send(string $operation, ApplicationMessageInterface $applicationMessage): ?InboundMessageInterface
+    {
         return app(OutboundRouterInterface::class)
-            ->route($operation, $this->createOutboundMessage($body, $headers));
+            ->route($operation, $this->createOutboundMessage($applicationMessage));
     }
 
     /**
-     * @param array|object|string $body
-     * @param array $headers
+     * @param ApplicationMessageInterface $applicationMessage
      *
      * @return OutboundMessage
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function createOutboundMessage($body, array $headers): OutboundMessage
+    private function createOutboundMessage(ApplicationMessageInterface $applicationMessage): OutboundMessage
     {
         // add mandatory headers
         $headers = array_merge(
-            $headers,
+            $applicationMessage->getHeaders(),
             [
                 "version" => self::DEFAULT_VERSION,
                 "dateTime" => (new DateTime())->format(self::DEFAULT_DATETIME_FORMAT)
@@ -90,6 +85,6 @@ abstract class AbstractService implements ServiceInterface
         return app(OutboundMessageInterface::class)
             ->setDefaultProperties()
             ->setHeaders($headers)
-            ->setBody($body);
+            ->setBody($applicationMessage->getPayload());
     }
 }
