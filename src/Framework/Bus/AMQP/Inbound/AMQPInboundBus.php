@@ -211,6 +211,14 @@ class AMQPInboundBus implements AMQPInboundBusInterface
                 if ($ackMessage) {
                     $message->ack();
                 }
+
+                // notify worker
+                $_this->ipcChannels->sendTo(
+                    $_this->ipcChannels->getWorkerChannel(),
+                    (new IPCMessage())->set(ParallelChannels::METHOD_JOB_PROCESSED)
+                );
+
+                return;
             } catch (Throwable $reason) {
                 $_this->logger->error(
                     $reason->getMessage(),
@@ -224,15 +232,6 @@ class AMQPInboundBus implements AMQPInboundBusInterface
 
             // nack handler - on error
             $message->nack(!$message->isRedelivered());
-
-            // notify worker
-
-            var_dump([__METHOD__, "notify worker"]);
-
-            $_this->ipcChannels->sendTo(
-                $_this->ipcChannels->getWorkerChannel(),
-                (new IPCMessage())->set(ParallelChannels::METHOD_JOB_PROCESSED)
-            );
         };
     }
 
