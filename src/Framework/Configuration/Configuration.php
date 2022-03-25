@@ -101,9 +101,7 @@ class Configuration implements ConfigurationInterface
             $this->configuration->addSchema($fileName, $schemas);
             // Add definitions
             $this->configuration->merge([$fileName => $definitions]);
-        } catch (ReflectionException $reason) {
-            // fault tolerant
-        } catch (ConfigurationException $reason) {
+        } catch (ReflectionException|ConfigurationException $reason) {
             // fault tolerant
         }
         if (!is_null($reason)) {
