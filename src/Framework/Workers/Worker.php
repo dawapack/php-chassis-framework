@@ -177,9 +177,12 @@ class Worker implements WorkerInterface
     protected function handleIPCMessage(IPCMessage $ipcMessage): void
     {
         if ($ipcMessage->getHeader("method") === ParallelChannels::METHOD_JOB_PROCESSED) {
-            $this->jobsBeforeRespawn--;
 
-            var_dump([__METHOD__, $this->jobsBeforeRespawn]);
+            $old = $this->jobsBeforeRespawn;
+
+            $this->jobsBeforeRespawn = $this->jobsBeforeRespawn - 1;
+
+            var_dump([__METHOD__, $old, $this->jobsBeforeRespawn]);
 
         }
     }
