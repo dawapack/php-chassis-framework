@@ -96,8 +96,6 @@ class Worker implements WorkerInterface
             $this->handleIPCMessage($ipcMessage);
         }
 
-        var_dump([__METHOD__, $this->jobsBeforeRespawn]);
-
         return true;
     }
 
