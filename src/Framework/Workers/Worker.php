@@ -8,7 +8,6 @@ use Chassis\Application;
 use Chassis\Framework\Adapters\Inbound\Bus\InboundBusAdapterInterface;
 use Chassis\Framework\Bus\Exceptions\ChannelBusException;
 use Chassis\Framework\Bus\SetupBusInterface;
-use Chassis\Framework\Logger\Logger;
 use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
 use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
 use Chassis\Framework\Threads\InterProcessCommunication\IPCChannelsInterface;
@@ -52,6 +51,7 @@ class Worker implements WorkerInterface
      * @return void
      *
      * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      */
     public function start(): void
     {
@@ -134,7 +134,7 @@ class Worker implements WorkerInterface
         $threadConfiguration = $this->application->get('threadConfiguration');
 
         // setup limits
-        $this->setWorkerLimits($threadConfiguration["ttl"], $threadConfiguration["maxJobs"]);
+        $this->setLimits($threadConfiguration["ttl"], $threadConfiguration["maxJobs"]);
 
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
@@ -192,7 +192,7 @@ class Worker implements WorkerInterface
      * @throws Exception
      * @throws ContainerExceptionInterface
      */
-    protected function setWorkerLimits(int $ttl, int $maxJobs): void
+    protected function setLimits(int $ttl, int $maxJobs): void
     {
         // avoid restarting workers at the same time
         $tenPercentOfTimeToLive = (int)($ttl * 0.1);
