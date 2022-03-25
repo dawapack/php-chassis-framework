@@ -62,6 +62,6 @@ class Logger
      */
     private static function log(string $level, string $message, array $context = []): void
     {
-        (app(LoggerInterface::class))->logger()->{$level}($message, $context);
+        (app(LoggerInterface::class))->{$level}($message, $context);
     }
 }
