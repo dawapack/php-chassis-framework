@@ -8,10 +8,12 @@ use Chassis\Application;
 use Chassis\Framework\Adapters\Inbound\Bus\InboundBusAdapterInterface;
 use Chassis\Framework\Bus\Exceptions\ChannelBusException;
 use Chassis\Framework\Bus\SetupBusInterface;
+use Chassis\Framework\Logger\Logger;
 use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
 use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
 use Chassis\Framework\Threads\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels;
+use DateTime;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
@@ -20,6 +22,7 @@ class Worker implements WorkerInterface
 {
     private const LOGGER_COMPONENT_PREFIX = "worker_";
     private const BUS_POOL_MAX_RETRY = 5;
+    private const DEFAULT_DATETIME_FORMAT = 'Y-m-d\TH:i:s.vP';
 
     private Application $application;
     private IPCChannelsInterface $ipcChannels;
@@ -47,7 +50,6 @@ class Worker implements WorkerInterface
     /**
      * @return void
      *
-     * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function start(): void
@@ -61,7 +63,6 @@ class Worker implements WorkerInterface
                 $this->busPooling();
             } while (!$this->limitReached());
         } catch (Throwable $reason) {
-            // log this error & request respawning
             $this->application->logger()->error(
                 $reason->getMessage(),
                 [
@@ -189,12 +190,29 @@ class Worker implements WorkerInterface
      */
     protected function setWorkerLimits(int $ttl, int $maxJobs): void
     {
-        // avoid restarting workers at the same time - generate -15 / 15 random number
-        $random = (double)(rand(0,30) - 15);
-        $this->processUntil = (int)($ttl + time() + $random);
+        // avoid restarting workers at the same time
+        $tenPercentOfTimeToLive = (int)($ttl * 0.1);
+        // no less than 60
+        if ($tenPercentOfTimeToLive < 60) {
+            $tenPercentOfTimeToLive = 60;
+        }
+        $randomized = (double)(rand(0,$tenPercentOfTimeToLive) - (int)($tenPercentOfTimeToLive / 2));
+        $this->processUntil = (int)($ttl + time() + $randomized);
 
         $this->jobsBeforeRespawn = $maxJobs;
+
+        $this->application->logger()->info(
+            "worker limits info",
+            [
+                'component' => self::LOGGER_COMPONENT_PREFIX . "limits_info",
+                'limits' => [
+                    'until' => (new DateTime())->format(self::DEFAULT_DATETIME_FORMAT),
+                    'maxJobs' => $this->jobsBeforeRespawn
+                ]
+            ]
+        );
     }
+
     /**
      * @return bool
      */

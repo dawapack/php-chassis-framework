@@ -212,7 +212,7 @@ class AMQPInboundBus implements AMQPInboundBusInterface
                     $message->ack();
                 }
 
-                // notify worker
+                // notify worker through IPC
                 $_this->ipcChannels->sendTo(
                     $_this->ipcChannels->getWorkerChannel(),
                     (new IPCMessage())->set(ParallelChannels::METHOD_JOB_PROCESSED)
