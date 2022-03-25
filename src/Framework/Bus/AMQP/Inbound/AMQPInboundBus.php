@@ -226,6 +226,9 @@ class AMQPInboundBus implements AMQPInboundBusInterface
             $message->nack(!$message->isRedelivered());
 
             // notify worker
+
+            var_dump([__METHOD__, "notify worker"]);
+
             $_this->ipcChannels->sendTo(
                 $_this->ipcChannels->getWorkerChannel(),
                 (new IPCMessage())->set(ParallelChannels::METHOD_JOB_PROCESSED)
