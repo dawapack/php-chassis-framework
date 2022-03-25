@@ -210,7 +210,9 @@ class Worker implements WorkerInterface
             [
                 'component' => self::LOGGER_COMPONENT_PREFIX . "limits_info",
                 'limits' => [
-                    'until' => (new DateTime($this->processUntil))->format(self::DEFAULT_DATETIME_FORMAT),
+                    'until' => (new DateTime())
+                        ->setTimestamp($this->processUntil)
+                        ->format(self::DEFAULT_DATETIME_FORMAT),
                     'maxJobs' => $this->jobsBeforeRespawn
                 ]
             ]
