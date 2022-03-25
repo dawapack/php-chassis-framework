@@ -149,6 +149,9 @@ class ParallelChannels implements IPCChannelsInterface
      */
     public function eventsPoll(): void
     {
+        // clear previous message
+        unset($this->message);
+
         try {
             $event = $this->events->poll();
             if (is_null($event)) {
@@ -179,8 +182,6 @@ class ParallelChannels implements IPCChannelsInterface
             );
             return;
         }
-        // clear previous message
-        unset($this->message);
         // save event value as message
         $this->message = new IPCMessage($event->value);
         $this->events->addChannel($this->getListenedChannel());
