@@ -132,7 +132,7 @@ class Worker implements WorkerInterface
         $threadConfiguration = $this->application->get('threadConfiguration');
 
         // setup limits
-        $this->setWorkerLimits($threadConfiguration["ttl"], $threadConfiguration["max_jobs"]);
+        $this->setWorkerLimits($threadConfiguration["ttl"], $threadConfiguration["maxJobs"]);
 
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
