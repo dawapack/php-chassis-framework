@@ -14,6 +14,7 @@ use Chassis\Framework\Threads\Exceptions\ThreadConfigurationException;
 use Chassis\Framework\Threads\InterProcessCommunication\IPCChannelsInterface;
 use Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels;
 use DateTime;
+use Exception;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
@@ -187,6 +188,9 @@ class Worker implements WorkerInterface
      * @param int $maxJobs
      *
      * @return void
+     *
+     * @throws Exception
+     * @throws ContainerExceptionInterface
      */
     protected function setWorkerLimits(int $ttl, int $maxJobs): void
     {
@@ -206,7 +210,7 @@ class Worker implements WorkerInterface
             [
                 'component' => self::LOGGER_COMPONENT_PREFIX . "limits_info",
                 'limits' => [
-                    'until' => (new DateTime())->format(self::DEFAULT_DATETIME_FORMAT),
+                    'until' => (new DateTime($this->processUntil))->format(self::DEFAULT_DATETIME_FORMAT),
                     'maxJobs' => $this->jobsBeforeRespawn
                 ]
             ]
