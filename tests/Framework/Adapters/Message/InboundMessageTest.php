@@ -45,12 +45,11 @@ class InboundMessageTest extends TestCase
     public function testSutCanGetBody(): void
     {
         $body = '{"my":"body"}';
-        $messageBus = new AMQPMessage($body, $this->createAMQPMessageProperties());
         $this->messageBus->expects($this->once())
             ->method('getBody')
             ->willReturn(json_decode($body, true));
 
-        $this->sut->setMessage($messageBus);
+        $this->sut->setMessage($this->messageBus);
         $responseBody = $this->sut->getBody();
         $this->assertIsArray($responseBody);
         $this->assertArrayHasKey("my", $responseBody);
@@ -61,12 +60,11 @@ class InboundMessageTest extends TestCase
      */
     public function testSutCanGetMessageHeaders(): void
     {
-        $messageBus = new AMQPMessage('{"my":"body"}', $this->createAMQPMessageProperties());
         $this->messageBus->expects($this->once())
             ->method('getHeaders')
             ->willReturn(["jobId" => Uuid::uuid4()->toString()]);
 
-        $this->sut->setMessage($messageBus);
+        $this->sut->setMessage($this->messageBus);
         $responseHeaders = $this->sut->getHeaders();
         $this->assertIsArray($responseHeaders);
         $this->assertArrayHasKey("jobId", $responseHeaders);
@@ -78,13 +76,11 @@ class InboundMessageTest extends TestCase
     public function testSutCanGetOneHeader(): void
     {
         $jobId = Uuid::uuid4()->toString();
-        $messageBus = new AMQPMessage('{"my":"body"}', $this->createAMQPMessageProperties());
         $this->messageBus->expects($this->once())
-            ->method("getHeader")
-            ->with("jobId")
-            ->willReturn($jobId);
+            ->method('getHeaders')
+            ->willReturn(["jobId" => $jobId]);
 
-        $this->sut->setMessage($messageBus);
+        $this->sut->setMessage($this->messageBus);
         $this->assertEquals($jobId, $this->sut->getHeader("jobId"));
     }
 
@@ -94,13 +90,11 @@ class InboundMessageTest extends TestCase
     public function testSutCanGetMessageProperties(): void
     {
         $properties = $this->createAMQPMessageProperties();
-        $properties["application_headers"] = new AMQPTable(["jobId" => Uuid::uuid4()->toString()]);
-        $messageBus = new AMQPMessage('{"my":"body"}', $properties);
         $this->messageBus->expects($this->once())
             ->method('getProperties')
             ->willReturn($properties);
 
-        $this->sut->setMessage($messageBus);
+        $this->sut->setMessage($this->messageBus);
         $this->assertEquals($properties, $this->sut->getProperties());
     }
 
@@ -111,13 +105,11 @@ class InboundMessageTest extends TestCase
     {
         $properties = $this->createAMQPMessageProperties();
         $property = $properties["correlation_id"];
-        $messageBus = new AMQPMessage('{"my":"body"}', $properties);
         $this->messageBus->expects($this->once())
-            ->method('getProperty')
-            ->with("correlation_id")
-            ->willReturn($property);
+            ->method('getProperties')
+            ->willReturn($properties);
 
-        $this->sut->setMessage($messageBus);
+        $this->sut->setMessage($this->messageBus);
         $this->assertEquals($property, $this->sut->getProperty("correlation_id"));
     }
 }

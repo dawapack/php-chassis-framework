@@ -13,6 +13,7 @@ use Chassis\Framework\Bus\SetupBusInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
+
 use function Chassis\Helpers\app;
 
 abstract class AbstractOperationsAdapter implements OperationsAdapterInterface

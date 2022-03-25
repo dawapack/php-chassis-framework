@@ -42,6 +42,5 @@ class InboundMessage extends AbstractMessage implements InboundMessageInterface
         $this->body = $messageBus->getBody();
         // cleanup properties
         unset($this->properties["application_headers"]);
-
     }
 }

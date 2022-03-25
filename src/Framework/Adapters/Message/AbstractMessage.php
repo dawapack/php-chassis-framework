@@ -15,7 +15,7 @@ class AbstractMessage implements MessageInterface
      * @var string|array|object
      */
     protected $body;
-    protected array $headers;
+    protected ?array $headers;
     protected array $properties;
 
     /**

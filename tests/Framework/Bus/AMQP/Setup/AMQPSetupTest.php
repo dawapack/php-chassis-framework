@@ -111,24 +111,10 @@ class AMQPSetupTest extends TestCase
     /**
      * @return void
      */
-    public function testSutMustBeFaultTolerantToQueuePurgeExceptions(): void
+    public function testSutMustPropagateAnySetupExceptions(): void
     {
-        $this->connector->expects($this->once())
-            ->method('getChannel')
-            ->willReturn($this->amqpChannel);
+        $this->expectException(Exception::class);
 
-        $this->amqpChannel->expects($this->once())
-            ->method('queue_purge')
-            ->willThrowException(new AMQPTimeoutException("timeout"));
-
-        $this->assertFalse($this->sut->purge('inbound/commands'));
-    }
-
-    /**
-     * @return void
-     */
-    public function testSutMustBeFaultTolerantToSetupExceptions(): void
-    {
         $this->connector->expects($this->once())
             ->method('getChannel')
             ->willThrowException(new Exception("nobody cares, just throw an exception"));

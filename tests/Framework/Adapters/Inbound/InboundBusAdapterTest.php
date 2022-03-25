@@ -66,9 +66,10 @@ class InboundBusAdapterTest extends TestCase
      */
     public function testSutCanGet(): void
     {
-        $messageBus = new AMQPMessage('{"my":"body"}', $this->createAMQPMessageProperties());
-        $inboundMessage = new InboundMessage(new AMQPMessageBus());
-        $inboundMessage->setMessage($messageBus);
+        $amqpMessage = $this->createAMQPMessage('{"my":"body_message"}');
+        $inboundMessage = new InboundMessage(
+            (new AMQPMessageBus())->setMessage($amqpMessage)
+        );
 
         $channel = "inbound/commands";
         $correlationId = $inboundMessage->getProperty("correlation_id");

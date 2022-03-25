@@ -10,7 +10,6 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <const name="RUNNER_TYPE" value="testing"/>
-        <const name="RUNNER_CHANNEL" value="inbound/commands"/>
     </php>
     <testsuites>
         <testsuite name="chassis-framework-test-suite">

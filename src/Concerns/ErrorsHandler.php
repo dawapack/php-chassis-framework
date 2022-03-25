@@ -16,6 +16,9 @@ trait ErrorsHandler
      * Set the error handling for the application.
      *
      * @return void
+     *
+     * @throws ApplicationErrorException
+     * @throws Throwable
      */
     protected function registerErrorHandling()
     {

@@ -18,6 +18,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
+
 use function Chassis\Helpers\app;
 
 class ThreadInstance implements ThreadInstanceInterface
@@ -169,7 +170,8 @@ class ThreadInstance implements ThreadInstanceInterface
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
-                }, [$runtimeBag]
+                },
+                [$runtimeBag]
             );
         } catch (Throwable $reason) {
             $application->logger()->error(

@@ -22,8 +22,6 @@ class Application extends Container
 
     private static Application $instance;
     private LoggerInterface $logger;
-    private string $basePath;
-    private array $properties;
 
     /**
      * Application constructor.
@@ -67,14 +65,6 @@ class Application extends Container
         return isset(self::$instance) && (self::$instance instanceof Application)
             ? self::$instance
             : null;
-    }
-
-    /**
-     * @return bool
-     */
-    public function runningInConsole(): bool
-    {
-        return PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
     }
 
     /**

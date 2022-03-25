@@ -150,7 +150,7 @@ class AMQPOutboundBusTest extends TestCase
         $messageBus = new AMQPMessageBus();
         $messageBus->setMessage(
             $this->createAMQPMessage(
-                ['inbound' => 'message'],
+                '{"inbound":"message"}',
                 ['reply_to' => 'DaWaPackTests.Q.Responses']
             )
         );
@@ -216,7 +216,7 @@ class AMQPOutboundBusTest extends TestCase
             ->setBody(["outbound" => "message"]);
         $messageBus = new AMQPMessageBus();
         $messageBus->setMessage(
-            $this->createAMQPMessage(['inbound' => 'message'])
+            $this->createAMQPMessage('{"inbound":"message"}')
         );
         $inboundMessage = new InboundMessage($messageBus);
 

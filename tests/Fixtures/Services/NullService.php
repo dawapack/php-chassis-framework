@@ -16,8 +16,10 @@ class NullService
      * @param MessageInterface|null $message
      * @param Application|null $application
      */
-    public function __construct(?MessageInterface $message = null, ?Application $application = null)
-    {
+    public function __construct(
+        MessageInterface $message = null,
+        Application $application = null
+    ) {
         $this->message = $message;
         $this->application = $application;
     }
@@ -26,11 +28,10 @@ class NullService
      * Nobody cares about the implementation
      *
      * @param MessageInterface $message
-     * @param Application $application
      *
      * @return void
      */
-    public function __invoke(MessageInterface $message, Application $application): void
+    public function __invoke(MessageInterface $message): void
     {
     }
 

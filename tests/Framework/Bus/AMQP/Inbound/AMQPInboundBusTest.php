@@ -8,6 +8,7 @@ use Chassis\Framework\Adapters\Message\InboundMessage;
 use Chassis\Framework\AsyncApi\AsyncContract;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnector;
 use Chassis\Framework\Bus\AMQP\Inbound\AMQPInboundBus;
+use Chassis\Framework\Bus\AMQP\Message\AMQPMessageBus;
 use Chassis\Framework\Routers\InboundRouter;
 use ChassisTests\Traits\AMQPMessageTrait;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -29,6 +30,7 @@ class AMQPInboundBusTest extends TestCase
     private AsyncContract $asyncContract;
     private InboundMessage $inboundMessage;
     private InboundRouter $inboundRouter;
+    private AMQPMessageBus $messageBus;
     private AMQPMessage $amqpMessage;
     private AMQPInboundBus $sut;
 
@@ -62,14 +64,19 @@ class AMQPInboundBusTest extends TestCase
         $this->inboundRouter = $this->getMockBuilder(InboundRouter::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->messageBus = $this->getMockBuilder(AMQPMessageBus::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getBody'])
+            ->getMock();
+
         $logger = new NullLogger();
 
         $this->sut = $this->getMockBuilder(AMQPInboundBus::class)
             ->setConstructorArgs([
                 $this->connector,
                 $this->asyncContract,
-                $this->inboundMessage,
                 $this->inboundRouter,
+                $this->messageBus,
                 $logger
             ])
             ->onlyMethods(['toBasicConsumeArguments'])
@@ -117,21 +124,20 @@ class AMQPInboundBusTest extends TestCase
     public function testSutCanRunBasicGetAndReturnAnInboundMessageInstance(): void
     {
         $amqpMessageProperties = $this->createAMQPMessageProperties();
-
         $this->connector->expects($this->once())
             ->method('getChannel')
             ->willReturn($this->amqpChannel);
         $this->amqpChannel->expects($this->once())
             ->method('basic_get')
             ->willReturn($this->amqpMessage);
-        $this->amqpMessage->expects($this->once())
+        $this->amqpMessage->expects($this->exactly(2))
             ->method('get_properties')
             ->willReturn($amqpMessageProperties);
         $this->amqpMessage->expects($this->once())
             ->method('ack');
-        $this->inboundMessage->expects($this->once())
-            ->method('setMessage')
-            ->with($this->amqpMessage);
+        $this->messageBus->expects($this->once())
+            ->method('getBody')
+            ->willReturn([]);
         $this->amqpChannel->expects($this->once())
             ->method('is_open')
             ->willReturn(true);

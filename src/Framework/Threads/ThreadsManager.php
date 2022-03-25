@@ -16,6 +16,7 @@ use parallel\Events\Event\Type as EventType;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
+
 use function Chassis\Helpers\app;
 
 class ThreadsManager implements ThreadsManagerInterface

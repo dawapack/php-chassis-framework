@@ -9,6 +9,7 @@ use Chassis\Framework\Adapters\Message\OutboundMessageInterface;
 use Chassis\Framework\Routers\Routes\RouteNotFound;
 use Psr\Log\LoggerInterface;
 use Throwable;
+
 use function Chassis\Helpers\app;
 
 class InboundRouter implements InboundRouterInterface

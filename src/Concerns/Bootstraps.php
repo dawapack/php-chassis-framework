@@ -54,6 +54,8 @@ use Throwable;
 
 trait Bootstraps
 {
+    private string $basePath;
+
     /**
      * @return void
      *
@@ -118,7 +120,7 @@ trait Bootstraps
         /**
          * Add channels to IPC instance
          *
-         * @var \Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels $channels
+         * @var ParallelChannels $channels
          */
         $channels = $this->get(IPCChannelsInterface::class);
         $channels->setWorkerChannel($runtimeBag->workerChannel, true);
