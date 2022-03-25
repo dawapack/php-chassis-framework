@@ -25,6 +25,9 @@ class Worker implements WorkerInterface
     private IPCChannelsInterface $ipcChannels;
     private InboundBusAdapterInterface $inboundBusAdapter;
     private int $iterateRetry = 0;
+    private int $jobsBeforeRespawn = 0;
+    private int $processUntil = 0;
+    private bool $hasLimits = false;
 
     /**
      * @param Application $application
@@ -52,13 +55,11 @@ class Worker implements WorkerInterface
         try {
             $this->setup();
             do {
-                // IPC channel event pooling
                 if (!$this->ipcPooling()) {
                     break;
                 }
-                // bus adapter pooling
                 $this->busPooling();
-            } while (true);
+            } while (!$this->limitReached());
         } catch (Throwable $reason) {
             // log this error & request respawning
             $this->application->logger()->error(
@@ -68,10 +69,11 @@ class Worker implements WorkerInterface
                     'error' => $reason
                 ]
             );
-            $this->ipcChannels->sendTo(
-                $this->ipcChannels->getThreadChannel(),
-                (new IPCMessage())->set(ParallelChannels::METHOD_RESPAWN_REQUESTED)
-            );
+        }
+
+        if (isset($reason) || $this->limitReached()) {
+            // send respawn requested message to thread manager process
+            $this->sendIpcMessage(ParallelChannels::METHOD_RESPAWN_REQUESTED);
         }
     }
 
@@ -82,17 +84,19 @@ class Worker implements WorkerInterface
     {
         // channel events pool
         $this->ipcChannels->eventsPoll();
-        if (!$this->ipcChannels->isAbortRequested()) {
-            return true;
+
+        if ($this->ipcChannels->isAbortRequested()) {
+            // send aborting message to thread manager process
+            $this->sendIpcMessage(ParallelChannels::METHOD_ABORTING);
+            return false;
         }
 
-        // send aborting message to thread manager
-        $this->ipcChannels->sendTo(
-            $this->ipcChannels->getThreadChannel(),
-            (new IPCMessage())->set(ParallelChannels::METHOD_ABORTING)
-        );
+        $ipcMessage = $this->ipcChannels->getMessage();
+        if ($ipcMessage instanceof IPCMessage) {
+            $this->handleIPCMessage($ipcMessage);
+        }
 
-        return false;
+        return true;
     }
 
     /**
@@ -126,6 +130,10 @@ class Worker implements WorkerInterface
     protected function setup(): void
     {
         $threadConfiguration = $this->application->get('threadConfiguration');
+
+        // setup limits
+        $this->setWorkerLimits($threadConfiguration["ttl"], $threadConfiguration["max_jobs"]);
+
         switch ($threadConfiguration["threadType"]) {
             case "infrastructure":
                 /** @var SetupBusInterface $bus */
@@ -138,9 +146,62 @@ class Worker implements WorkerInterface
                 // wait a while - infrastructure must declare exchanges, queues & bindings
                 usleep(rand(2500000, 4000000));
                 $this->inboundBusAdapter->subscribe($threadConfiguration["channelName"]);
+                // this thread type has limits
+                $this->hasLimits = true;
                 break;
             default:
                 throw new ThreadConfigurationException("unknown thread type");
         }
+    }
+
+    /**
+     * @param string $method
+     * @param string|array|null $body
+     * @param array $headers
+     *
+     * @return void
+     */
+    protected function sendIpcMessage(string $method, $body = null, array $headers = []): void
+    {
+        $this->ipcChannels->sendTo(
+            $this->ipcChannels->getThreadChannel(),
+            (new IPCMessage())->set($method, $body, $headers)
+        );
+    }
+
+    /**
+     * @param IPCMessage $ipcMessage
+     *
+     * @return void
+     */
+    protected function handleIPCMessage(IPCMessage $ipcMessage): void
+    {
+        if ($ipcMessage->getHeader("method") === ParallelChannels::METHOD_JOB_PROCESSED) {
+            $this->jobsBeforeRespawn--;
+        }
+
+        var_dump([__METHOD__, $this->jobsBeforeRespawn]);
+    }
+
+    /**
+     * @param int $ttl
+     * @param int $maxJobs
+     *
+     * @return void
+     */
+    protected function setWorkerLimits(int $ttl, int $maxJobs): void
+    {
+        // avoid restarting workers at the same time - generate -15 / 15 random number
+        $random = (double)(rand(0,30) - 15);
+        $this->processUntil = (int)($ttl + time() + $random);
+
+        $this->jobsBeforeRespawn = $maxJobs;
+    }
+    /**
+     * @return bool
+     */
+    protected function limitReached(): bool
+    {
+        return $this->hasLimits && ($this->processUntil < time() || $this->jobsBeforeRespawn <= 0);
     }
 }

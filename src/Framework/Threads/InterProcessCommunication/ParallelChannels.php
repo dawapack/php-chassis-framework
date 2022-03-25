@@ -17,6 +17,7 @@ class ParallelChannels implements IPCChannelsInterface
     public const METHOD_ABORTING = 'aborting';
     public const METHOD_ABORT_REQUESTED = 'abort';
     public const METHOD_RESPAWN_REQUESTED = 'respawn';
+    public const METHOD_JOB_PROCESSED = 'job_processed';
 
     private const WORKER_CHANNEL_NAME = 'worker';
     private const THREAD_CHANNEL_NAME = 'thread';

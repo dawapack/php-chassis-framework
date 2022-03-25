@@ -157,6 +157,7 @@ trait Bootstraps
                 AsyncContractInterface::class,
                 InboundRouterInterface::class,
                 MessageBusInterface::class,
+                IPCChannelsInterface::class,
                 LoggerInterface::class
             ]);
         $this->add(OutboundBusInterface::class, AMQPOutboundBus::class)

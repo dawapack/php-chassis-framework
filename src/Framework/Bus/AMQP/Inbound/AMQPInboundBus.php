@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Chassis\Framework\Bus\AMQP\Inbound;
 
 use Chassis\Framework\Adapters\Message\InboundMessage;
-use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 use Chassis\Framework\AsyncApi\AsyncContract;
 use Chassis\Framework\AsyncApi\AsyncContractInterface;
 use Chassis\Framework\Bus\AMQP\Connector\AMQPConnectorInterface;
 use Chassis\Framework\Bus\MessageBusInterface;
 use Chassis\Framework\Routers\InboundRouterInterface;
+use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
+use Chassis\Framework\Threads\InterProcessCommunication\IPCChannelsInterface;
+use Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels;
 use Closure;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
@@ -32,6 +34,7 @@ class AMQPInboundBus implements AMQPInboundBusInterface
     private AsyncContractInterface $asyncContract;
     private InboundRouterInterface $inboundRouter;
     private MessageBusInterface $messageBus;
+    private IPCChannelsInterface $ipcChannels;
     private LoggerInterface $logger;
     private AMQPChannel $amqpChannel;
     private string $channel;
@@ -54,6 +57,7 @@ class AMQPInboundBus implements AMQPInboundBusInterface
      * @param AsyncContract $asyncContract
      * @param InboundRouterInterface $inboundRouter
      * @param MessageBusInterface $messageBus
+     * @param IPCChannelsInterface $ipcChannels
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -61,12 +65,14 @@ class AMQPInboundBus implements AMQPInboundBusInterface
         AsyncContractInterface $asyncContract,
         InboundRouterInterface $inboundRouter,
         MessageBusInterface $messageBus,
+        IPCChannelsInterface $ipcChannels,
         LoggerInterface $logger
     ) {
         $this->connector = $connector;
         $this->asyncContract = $asyncContract;
         $this->inboundRouter = $inboundRouter;
         $this->messageBus = $messageBus;
+        $this->ipcChannels = $ipcChannels;
         $this->logger = $logger;
     }
 
@@ -218,6 +224,12 @@ class AMQPInboundBus implements AMQPInboundBusInterface
 
             // nack handler - on error
             $message->nack(!$message->isRedelivered());
+
+            // notify worker
+            $_this->ipcChannels->sendTo(
+                $_this->ipcChannels->getWorkerChannel(),
+                (new IPCMessage())->set(ParallelChannels::METHOD_JOB_PROCESSED)
+            );
         };
     }
 
