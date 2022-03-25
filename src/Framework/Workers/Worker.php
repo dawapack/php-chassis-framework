@@ -96,6 +96,8 @@ class Worker implements WorkerInterface
             $this->handleIPCMessage($ipcMessage);
         }
 
+        var_dump([__METHOD__, $this->jobsBeforeRespawn]);
+
         return true;
     }
 
@@ -179,8 +181,6 @@ class Worker implements WorkerInterface
         if ($ipcMessage->getHeader("method") === ParallelChannels::METHOD_JOB_PROCESSED) {
             $this->jobsBeforeRespawn--;
         }
-
-        var_dump([__METHOD__, $this->jobsBeforeRespawn]);
     }
 
     /**
