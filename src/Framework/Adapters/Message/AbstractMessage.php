@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Adapters\Message;
 
+use Chassis\Framework\Bus\Exceptions\MessageBusException;
 use Chassis\Framework\Bus\MessageBusInterface;
-use Throwable;
+use JsonException;
 
 class AbstractMessage implements MessageInterface
 {
@@ -20,6 +21,9 @@ class AbstractMessage implements MessageInterface
 
     /**
      * @param MessageBusInterface $messageBus
+     *
+     * @throws MessageBusException
+     * @throws JsonException
      */
     public function __construct(MessageBusInterface $messageBus)
     {

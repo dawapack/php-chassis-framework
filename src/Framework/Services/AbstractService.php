@@ -17,9 +17,10 @@ use function Chassis\Helpers\app;
 
 abstract class AbstractService implements ServiceInterface
 {
+    public const DEFAULT_VERSION = '1.0.0';
+    public const DEFAULT_DATETIME_FORMAT = 'Y-m-d\TH:i:s.vP';
+    public const DEFAULT_BODY = ["items" => [], "meta" => null];
     protected const LOGGER_COMPONENT_PREFIX = "application_service_";
-    protected const DEFAULT_VERSION = '1.0.0';
-    protected const DEFAULT_DATETIME_FORMAT = 'Y-m-d\TH:i:s.vP';
 
     protected InboundMessageInterface $message;
 
