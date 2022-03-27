@@ -68,6 +68,6 @@ class RouteNotFound
         return $this->application->get(OutboundMessageInterface::class)
             ->setDefaultProperties()
             ->setHeaders($headers)
-            ->setBody(AbstractService::DEFAULT_BODY);
+            ->setBody(AbstractService::DEFAULT_PAYLOAD);
     }
 }
