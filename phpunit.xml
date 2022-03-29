@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="tests/testBox/bootstrap.php"
+         bootstrap="tests/TestBox/bootstrap.php"
          executionOrder="default"
          verbose="true"
          colors="true"
@@ -10,7 +10,6 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <const name="RUNNER_TYPE" value="testing"/>
-        <const name="RUNNER_CHANNEL" value="general/testing/channel"/>
     </php>
     <testsuites>
         <testsuite name="chassis-framework-test-suite">

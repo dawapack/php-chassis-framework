@@ -41,4 +41,12 @@ trait Runner
 
         $this->runnerType = RUNNER_TYPE;
     }
+
+    /**
+     * @return bool
+     */
+    public function runningInConsole(): bool
+    {
+        return PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
+    }
 }

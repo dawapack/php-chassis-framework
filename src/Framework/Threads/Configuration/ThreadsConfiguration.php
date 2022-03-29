@@ -21,49 +21,9 @@ class ThreadsConfiguration implements ThreadsConfigurationInterface
     /**
      * @inheritDoc
      */
-    public function getThreadMaximumJobsBeforeRespawn(): int
-    {
-        return $this->configuration["max_jobs"];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getMinimumVerticalScalingCount(): int
-    {
-        return $this->configuration["minimum"];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getMaximumVerticalScalingCount(): int
-    {
-        return $this->configuration["maximum"];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getVerticalScalingTriggers(): int
-    {
-        return $this->configuration["triggers"];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getThreadTimeToLive(): int
-    {
-        return $this->configuration["ttl"];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function hasInfrastructureThread(): bool
     {
-        return $this->configuration["infrastructure"]["enabled"];
+        return $this->configuration["infrastructure"]["enabled"] ?? false;
     }
 
     /**
@@ -71,7 +31,7 @@ class ThreadsConfiguration implements ThreadsConfigurationInterface
      */
     public function hasCentralizedConfigurationThread(): bool
     {
-        return $this->configuration["configuration"]["enabled"];
+        return $this->configuration["configuration"]["enabled"] ?? false;
     }
 
     /**
@@ -79,7 +39,7 @@ class ThreadsConfiguration implements ThreadsConfigurationInterface
      */
     public function hasWorkerThreads(): bool
     {
-        return $this->configuration["worker"]["enabled"];
+        return $this->configuration["worker"]["enabled"] ?? false;
     }
 
     /**

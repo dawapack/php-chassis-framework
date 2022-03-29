@@ -4,25 +4,22 @@
   "keywords": ["dawapack", "php", "chassis", "framework"],
   "license": "Apache-2.0",
   "type": "library",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "git@github.com:dawapack/asyncapi-contract-sample.git"
-    }
-  ],
   "require": {
     "ext-json": "*",
     "ext-simplexml": "*",
     "ext-parallel": "*",
     "ext-pcntl": "*",
+    "ext-redis": "*",
     "ext-zlib": "*",
     "php": "^7.4",
-    "dawapack/asyncapi-contract-sample": "^0",
+    "cache/predis-adapter": "^1.2",
+    "cache/redis-adapter": "^1.1",
     "league/config": "^1.1",
     "league/container": "^4.2",
     "monolog/monolog": "^2.3.0",
     "opis/json-schema": "^2.3",
     "php-amqplib/php-amqplib": "^3.0",
+    "predis/predis": "^1.1",
     "ramsey/uuid": "^4.2",
     "spatie/data-transfer-object": "^2.8.0",
     "symfony/yaml": "^5.4",
@@ -43,7 +40,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Chassis\\Tests\\": "tests/"
+      "ChassisTests\\": "tests/"
     },
     "files": [
       "src/Helpers/collections.php",

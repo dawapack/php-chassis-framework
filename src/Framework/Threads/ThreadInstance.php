@@ -5,21 +5,17 @@ declare(strict_types=1);
 namespace Chassis\Framework\Threads;
 
 use Chassis\Application;
-use Chassis\Framework\InterProcessCommunication\ChannelsInterface;
-use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Kernel;
 use Chassis\Framework\Routers\InboundRouterInterface;
 use Chassis\Framework\Routers\OutboundRouterInterface;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
-use Chassis\Framework\Workers\Worker;
-use Chassis\Framework\Workers\WorkerInterface;
 use parallel\Channel;
 use parallel\Channel\Error\Existence;
-use parallel\Events;
 use parallel\Future;
 use parallel\Runtime;
-use Psr\Log\LoggerInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
 
@@ -88,6 +84,10 @@ class ThreadInstance implements ThreadInstanceInterface
 
     /**
      * @return string
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ThreadInstanceException
      */
     public function spawn(): string
     {
@@ -116,6 +116,8 @@ class ThreadInstance implements ThreadInstanceInterface
      * @param int $capacity
      *
      * @return Channel|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function createChannel(string $name, int $capacity): ?Channel
     {
@@ -135,67 +137,44 @@ class ThreadInstance implements ThreadInstanceInterface
     }
 
     /**
+     * @param string $threadId
+     *
      * @return Future|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function createFuture(string $threadId): ?Future
     {
-        // Create parallel runtime - inject vendor autoload as bootstrap
+        $application = app();
         try {
-            $basePath = app('basePath');
-            // Create parallel future
-            return (new Runtime($basePath . "/vendor/autoload.php"))->run(
-                static function (
-                    string $basePath,
-                    string $threadId,
-                    array $threadConfiguration,
-                    Channel $workerChannel,
-                    Channel $threadChannel,
-                    InboundRouterInterface $inboundRouter,
-                    OutboundRouterInterface $outboundRouter
-                ): void {
+            $runtimeBag = ThreadRuntimeBag::factory()
+                ->with('basePath', $application->get('basePath'))
+                ->with('threadId', $threadId)
+                ->with('threadConfiguration', $this->threadConfiguration->toArray())
+                ->with('workerChannel', $this->workerChannel)
+                ->with('threadChannel', $this->threadChannel)
+                ->with('inboundRouter', $application->get(InboundRouterInterface::class))
+                ->with('outboundRouter', $application->get(OutboundRouterInterface::class));
+
+            // Create parallel future - inject vendor autoloader
+            return (new Runtime($runtimeBag->basePath . "/vendor/autoload.php"))->run(
+                static function (ThreadRuntimeBag $runtimeBag): void {
                     // Define application in Closure as worker
                     define('RUNNER_TYPE', 'worker');
 
+                    // create singleton - clone runtime bag from function argument
+                    ThreadRuntimeBag::factory($runtimeBag);
+
                     /** @var Application $app */
-                    $app = require $basePath . '/bootstrap/app.php';
-
-                    // IPC setup
-                    $app->add(ChannelsInterface::class, ParallelChannels::class)
-                        ->addArguments([new Events(), LoggerInterface::class]);
-                    /**
-                     * Add channels to IPC instance
-                     *
-                     * @var ParallelChannels $channels
-                     */
-                    $channels = $app->get(ChannelsInterface::class);
-                    $channels->setWorkerChannel($workerChannel, true);
-                    $channels->setThreadChannel($threadChannel);
-
-                    // Add aliases, config, ...
-                    $app->add('threadConfiguration', $threadConfiguration);
-                    $app->add('threadId', $threadId);
-                    $app->withConfig("threads");
-                    $app->withBroker(true);
-                    $app->add(WorkerInterface::class, Worker::class)
-                        ->addArguments([$app, ChannelsInterface::class]);
-                    $app->add(InboundRouterInterface::class, $inboundRouter);
-                    $app->add(OutboundRouterInterface::class, $outboundRouter);
+                    $app = require $runtimeBag->basePath . '/bootstrap/app.php';
 
                     // Start processing jobs
                     (new Kernel($app))->boot();
                 },
-                [
-                    $basePath,
-                    $threadId,
-                    $this->threadConfiguration->toArray(),
-                    $this->workerChannel,
-                    $this->threadChannel,
-                    app(InboundRouterInterface::class),
-                    app(OutboundRouterInterface::class)
-                ]
+                [$runtimeBag]
             );
         } catch (Throwable $reason) {
-            app()->logger()->error(
+            $application->logger()->error(
                 $reason->getMessage(),
                 [
                     "component" => self::LOGGER_COMPONENT_PREFIX . "create_future_exception",

@@ -1,0 +1,71 @@
+asyncapi: 2.2.0
+info:
+  title: DaWaPack AsyncAPI fixture infrastructure definitions
+  version: 0.1.0
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+defaultContentType: application/json
+channels:
+  amqp/default:
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: ''
+          type: direct
+          durable: true
+          autoDelete: false
+          vhost: /
+    publish:
+      bindings:
+        amqp:
+          deliveryMode: 2
+          mandatory: false
+      message:
+        bindings:
+          amqp:
+            contentEncoding: UTF-8
+            messageType: '#any'
+  outbound/commands:
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: DaWaPackTests.DX.Commands
+          type: direct
+          durable: false
+          autoDelete: false
+          vhost: /
+    publish:
+      bindings:
+        amqp:
+          deliveryMode: 2
+          mandatory: false
+      message:
+        bindings:
+          amqp:
+            contentEncoding: UTF-8
+            messageType: '#any'
+  inbound/commands:
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: DaWaPack.Q.Commands
+          durable: false
+          exclusive: false
+          autoDelete: false
+          vhost: /
+    subscribe:
+      bindings:
+        amqp:
+          cc: [
+              'DaWaPackTests.DX.Commands|DaWaPackTests.RK.CommandFireAndForget'
+          ]
+          ack: true
+      message:
+        bindings:
+          amqp:
+            contentEncoding: UTF-8
+            messageType: '#any'

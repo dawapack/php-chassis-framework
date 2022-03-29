@@ -1,8 +1,8 @@
 version: '3.2'
 services:
-  dawapack_chassis_framework:
+  chassis_framework:
     image: dawapack:0.1-chassis-framework
-    container_name: dawapack_chassis_framework
+    container_name: chassis_framework
     build:
       dockerfile: Dockerfile
       context: ./var/docker
@@ -16,10 +16,17 @@ services:
       - type: bind
         source: .
         target: /var/package
-  rabbitmq:
+  chassis_rabbitmq:
     image: rabbitmq:3.9.0-management-alpine
-    container_name: dawapack_chassis_rabbitmq
+    container_name: chassis_rabbitmq
     restart: on-failure
     ports:
       - "5672:5672"
       - "15672:15672"
+  chassis_redis:
+    image: redis:6.2-alpine
+    container_name: chassis_redis
+    restart: on-failure
+    command: [ "redis-server", "--appendonly", "yes" ]
+    ports:
+      - "6379:6379"

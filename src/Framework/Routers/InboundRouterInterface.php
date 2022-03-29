@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Routers;
 
-use Chassis\Framework\Brokers\Amqp\BrokerRequest;
-use Chassis\Framework\Brokers\Amqp\BrokerResponse;
-use Chassis\Framework\Brokers\Amqp\MessageBags\MessageBagInterface;
+use Chassis\Framework\Adapters\Message\InboundMessageInterface;
 
-interface InboundRouterInterface
+interface InboundRouterInterface extends RouterInterface
 {
     /**
-     * @param MessageBagInterface $message
+     * @param string|null $operation
+     * @param InboundMessageInterface $message
      *
-     * @return BrokerRequest|BrokerResponse|null
+     * @return void
      */
-    public function route(MessageBagInterface $message);
+    public function route(?string $operation, InboundMessageInterface $message): void;
 }

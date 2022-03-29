@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Logger;
 
-use Chassis\Framework\Brokers\Amqp\Configurations\DataTransferObject\BrokerChannel;
 use Chassis\Framework\Logger\DataTransferObject\ContextBroker;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -24,11 +23,10 @@ class LoggerApplicationContext implements LoggerApplicationContextInterface
     /**
      * @inheritDoc
      */
-    public function setBrokerContext(string $channelName, BrokerChannel $channel, AMQPMessage $message): void
+    public function setBrokerContext(string $channelName, AMQPMessage $message): void
     {
         $this->contextBroker = new ContextBroker([
             'channelName' => $channelName,
-            'bindings' => $channel->toArray(),
             'message' => $this->extractContextMessageElements($message)
         ]);
     }

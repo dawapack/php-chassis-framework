@@ -1,0 +1,257 @@
+asyncapi: 2.2.0
+info:
+  title: DaWaPack AsyncAPI fixture specifications
+  version: 0.1.0
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  development:
+    url: rabbitmq
+    description: Development server
+    protocol: amqp
+    protocolVersion: 0.9.1
+    security:
+      - user_pass: []
+defaultContentType: application/json
+channels:
+  outbound/commands:
+    bindings:
+      amqp:
+        $ref: '#/components/channelBindings/OutboundChannelBindings'
+    publish:
+      bindings:
+        amqp:
+          $ref: '#/components/operationBindings/OutboundOperationBindings'
+      message:
+        bindings:
+          amqp:
+            $ref: '#/components/messageBindings/DefaultMessageBindings'
+        headers:
+          $ref: '#/components/schemas/AnyMessageHeaders'
+        payload:
+          $ref: '#/components/schemas/AnyMessagePayload'
+  inbound/commands:
+    bindings:
+      amqp:
+        $ref: '#/components/channelBindings/InboundChannelBindings'
+    subscribe:
+      bindings:
+        amqp:
+          $ref: '#/components/operationBindings/InboundOperationBindings'
+      message:
+        bindings:
+          amqp:
+            $ref: '#/components/messageBindings/DefaultMessageBindings'
+        headers:
+          $ref: '#/components/schemas/AnyMessageHeaders'
+        payload:
+          $ref: '#/components/schemas/AnyMessagePayload'
+components:
+  channelBindings:
+    InboundChannelBindings:
+      $ref: '#/components/schemas/AMQPQueueChannelBindings'
+    OutboundChannelBindings:
+      $ref: '#/components/schemas/AMQPExchangeChannelBindings'
+  operationBindings:
+    InboundOperationBindings:
+      $ref: '#/components/schemas/AMQPInboundOperationBindings'
+    OutboundRpcOperationBindings:
+      $ref: '#/components/schemas/AMQPOutboundRpcOperationBindings'
+    OutboundOperationBindings:
+      $ref: '#/components/schemas/AMQPOutboundOperationBindings'
+  messageBindings:
+    DefaultMessageBindings:
+      $ref: '#/components/schemas/AMQPMessageBindings'
+  securitySchemes:
+    user_pass:
+      type: userPassword
+  schemas:
+    AMQPExchangeChannelBindings:
+      additionalProperties: false
+      type: object
+      properties:
+        is:
+          const: routingKey
+        exchange:
+          additionalProperties: false
+          type: object
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            type:
+              type: string
+              enum:
+                - 'default'
+                - 'direct'
+                - 'topic'
+                - 'fanout'
+                - 'headers'
+            durable:
+              type: boolean
+            autoDelete:
+              type: boolean
+            vhost:
+              type: string
+              default: /
+          required:
+            - name
+            - type
+            - durable
+            - autoDelete
+            - vhost
+        bindingVersion:
+          type: string
+          enum:
+            - '0.2.0'
+            - 'latest'
+      required:
+        - is
+        - exchange
+    AMQPQueueChannelBindings:
+      additionalProperties: false
+      type: object
+      properties:
+        is:
+          const: queue
+        queue:
+          additionalProperties: false
+          type: object
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            durable:
+              type: boolean
+            exclusive:
+              type: boolean
+            autoDelete:
+              type: boolean
+            vhost:
+              type: string
+              default: /
+          required:
+            - name
+            - durable
+            - exclusive
+            - autoDelete
+            - vhost
+        bindingVersion:
+          type: string
+          enum:
+            - '0.2.0'
+            - 'latest'
+      required:
+        - is
+        - queue
+    AMQPCommonsOperationBindings:
+      additionalProperties: false
+      type: object
+      properties:
+        expiration:
+          type: integer
+          minimum: 0
+          maximum: 86400
+        userId:
+          type: string
+          minimum: 5
+          maximum: 64
+        cc:
+          type: array
+          items:
+            type: string
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 10
+        deliveryMode:
+          type: integer
+          enum:
+            - 1
+            - 2
+        replyTo:
+          type: string
+          minimum: 5
+          maximum: 255
+        timestamp:
+          type: boolean
+        bindingVersion:
+          type: string
+          enum:
+            - '0.2.0'
+            - 'latest'
+    AMQPOutboundRpcOperationBindings:
+      allOf:
+        - $ref: '#/components/schemas/AMQPCommonsOperationBindings'
+          required:
+            - cc
+            - deliveryMode
+            - replyTo
+        - additionalProperties: false
+          type: object
+          properties:
+            mandatory:
+              type: boolean
+          required:
+            - mandatory
+    AMQPOutboundOperationBindings:
+      allOf:
+        - $ref: '#/components/schemas/AMQPCommonsOperationBindings'
+          required:
+            - cc
+            - deliveryMode
+        - additionalProperties: false
+          type: object
+          properties:
+            mandatory:
+              type: boolean
+          required:
+            - mandatory
+    AMQPInboundOperationBindings:
+      allOf:
+        - $ref: '#/components/schemas/AMQPCommonsOperationBindings'
+        - additionalProperties: false
+          type: object
+          properties:
+            ack:
+              type: boolean
+          required:
+            - ack
+    AMQPMessageBindings:
+      additionalProperties: false
+      type: object
+      properties:
+        contentEncoding:
+          type: string
+        messageType:
+          type: string
+          minimum: 5
+          maximum: 128
+        bindingVersion:
+          type: string
+          enum:
+            - '0.2.0'
+            - 'latest'
+      required:
+        - contentEncoding
+        - messageType
+    AnyMessageHeaders:
+      additionalProperties: true
+      type: object
+      properties:
+        version:
+          type: string
+          pattern: '^(\d*)\.(\d*)(\.{1}(\d*))*$'
+          example:
+            $ref: '#/info/version'
+        dateTime:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+\d{2}\:\d{2}$'
+          example: '2021-12-13T15:30:21.500+00:00'
+      required:
+        - version
+        - dateTime
+    AnyMessagePayload:
+      additionalProperties: true
+      type: object

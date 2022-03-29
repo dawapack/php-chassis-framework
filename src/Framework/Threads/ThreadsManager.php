@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Chassis\Framework\Threads;
 
-use Chassis\Framework\InterProcessCommunication\DataTransferObject\IPCMessage;
-use Chassis\Framework\InterProcessCommunication\ParallelChannels;
 use Chassis\Framework\Threads\Configuration\ThreadConfiguration;
 use Chassis\Framework\Threads\Configuration\ThreadsConfigurationInterface;
+use Chassis\Framework\Threads\DataTransferObject\IPCMessage;
 use Chassis\Framework\Threads\Exceptions\ThreadInstanceException;
+use Chassis\Framework\Threads\InterProcessCommunication\ParallelChannels;
 use parallel\Events;
 use parallel\Events\Error\Timeout;
 use parallel\Events\Event;
@@ -71,6 +71,10 @@ class ThreadsManager implements ThreadsManagerInterface
 
     /**
      * @return void
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ThreadInstanceException
      */
     protected function stop(): void
     {
@@ -78,12 +82,9 @@ class ThreadsManager implements ThreadsManagerInterface
          * @var ThreadInstance $threadInstance
          */
         foreach ($this->threads as $threadInstance) {
-            ($threadInstance->getWorkerChannel())
-                ->send(
-                    (new IPCMessage())
-                        ->set(ParallelChannels::METHOD_ABORT_REQUESTED)
-                        ->toArray()
-                );
+            ($threadInstance->getWorkerChannel())->send(
+                (new IPCMessage())->set(ParallelChannels::METHOD_ABORT_REQUESTED)->toArray()
+            );
         }
 
         do {
@@ -96,6 +97,10 @@ class ThreadsManager implements ThreadsManagerInterface
 
     /**
      * @return void
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ThreadInstanceException
      */
     protected function eventsPoll(): void
     {
@@ -128,7 +133,7 @@ class ThreadsManager implements ThreadsManagerInterface
             $this->logger->warning(
                 "got unhandled event",
                 [
-                    "component" => self::LOGGER_COMPONENT_PREFIX . "event_handler",
+                    "component" => self::LOGGER_COMPONENT_PREFIX . "wrong_event_type",
                     "event" => (array)$event
                 ]
             );
@@ -178,10 +183,15 @@ class ThreadsManager implements ThreadsManagerInterface
             $this->threadsConfiguration->getThreadConfiguration('configuration')
         );
         // Spawn worker threads
-        $workersConfiguration = $this->threadsConfiguration->getThreadConfiguration('worker');
-        if ($workersConfiguration->enabled) {
-            foreach ($workersConfiguration->channels as $channel) {
-                $this->spawnThread(new ThreadConfiguration($channel));
+        if ($this->threadsConfiguration->hasWorkerThreads()) {
+            $workersConfiguration = $this->threadsConfiguration->getThreadConfiguration('worker');
+            if ($workersConfiguration->enabled) {
+                foreach ($workersConfiguration->channels as $channel) {
+                    if ($channel["enabled"] !== true) {
+                        continue;
+                    }
+                    $this->spawnThread(new ThreadConfiguration($channel));
+                }
             }
         }
     }
@@ -230,6 +240,8 @@ class ThreadsManager implements ThreadsManagerInterface
      *
      * @return void
      *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      * @throws ThreadInstanceException
      */
     protected function startThread(ThreadInstance $threadInstance)

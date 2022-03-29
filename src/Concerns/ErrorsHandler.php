@@ -16,6 +16,9 @@ trait ErrorsHandler
      * Set the error handling for the application.
      *
      * @return void
+     *
+     * @throws ApplicationErrorException
+     * @throws Throwable
      */
     protected function registerErrorHandling()
     {
@@ -37,6 +40,8 @@ trait ErrorsHandler
         register_shutdown_function(function () {
             $this->handleShutdown();
         });
+
+        pcntl_async_signals(true);
     }
 
     /**
